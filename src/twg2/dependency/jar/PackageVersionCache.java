@@ -1,4 +1,4 @@
-package jarDependencies;
+package twg2.dependency.jar;
 
 import java.util.List;
 

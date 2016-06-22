@@ -1,6 +1,4 @@
-package test;
-
-import jarDependencies.PackageJson;
+package twg2.dependency.test;
 
 import java.io.ByteArrayInputStream;
 import java.io.UncheckedIOException;
@@ -13,6 +11,7 @@ import org.junit.Test;
 
 import twg2.collections.builder.MapBuilder;
 import twg2.collections.tuple.Tuples;
+import twg2.dependency.jar.PackageJson;
 import twg2.io.json.Json;
 import twg2.text.stringUtils.StringJoin;
 

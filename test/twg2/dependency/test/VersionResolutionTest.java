@@ -1,11 +1,4 @@
-package test;
-
-import jarDependencies.NameVersion;
-import jarDependencies.PackageJson;
-import jarDependencies.PackageSet;
-import jarDependencies.RepositoryInfo;
-import jarDependencies.RepositoryStructure;
-import jarDependencies.VersionResolution;
+package twg2.dependency.test;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -18,6 +11,13 @@ import lombok.val;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import twg2.dependency.jar.NameVersion;
+import twg2.dependency.jar.PackageJson;
+import twg2.dependency.jar.PackageSet;
+import twg2.dependency.jar.RepositoryInfo;
+import twg2.dependency.jar.RepositoryStructure;
+import twg2.dependency.jar.VersionResolution;
 
 import com.github.zafarkhaja.semver.expr.CompositeExpression;
 import com.github.zafarkhaja.semver.expr.Expression;

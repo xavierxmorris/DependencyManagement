@@ -1,11 +1,5 @@
-package eclipseProject;
+package twg2.dependency.eclipseProject;
 
-import jarDependencies.PackageJson;
-import jarDependencies.PackageSet;
-import jarDependencies.RepositoryInfo;
-import jarDependencies.RepositoryStructure;
-
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,9 +24,13 @@ import javax.xml.transform.TransformerException;
 
 import lombok.val;
 import twg2.collections.builder.ListDiff;
-import twg2.collections.builder.ListUtil;
 import twg2.collections.builder.ListDiff.AddedRemoved;
+import twg2.collections.builder.ListUtil;
 import twg2.collections.dataStructures.PairList;
+import twg2.dependency.jar.PackageJson;
+import twg2.dependency.jar.PackageSet;
+import twg2.dependency.jar.RepositoryInfo;
+import twg2.dependency.jar.RepositoryStructure;
 import twg2.text.stringUtils.StringCase;
 import twg2.text.stringUtils.StringSplit;
 
@@ -177,7 +175,7 @@ public class EclipseClasspathUtils {
 
 
 	public static void printProjectsContainingLibs(File projects) throws FileNotFoundException, IOException, XMLStreamException {
-		List<String> expectImports = Arrays.asList("data_transfer.jar");
+		List<String> expectImports = Arrays.asList("jmeta_access.jar");
 		boolean containsAll = true;
 
 		val projectFiles = loadProjectClasspathFiles(projects);
@@ -216,7 +214,7 @@ public class EclipseClasspathUtils {
 		// load .classpath dependencies
 		val classPathFile = new File(projsPath.toFile(), "JParserDataTypeLike/.classpath");
 		val doc = EclipseClasspathDoc.loadXmlDom(classPathFile, new FileInputStream(classPathFile));
-		val cpEntries = doc.getLibClassPathEntries();
+		//val cpEntries = doc.getLibClassPathEntries();
 
 		// load all library package-lib.json files
 		val javaRepoBldr = new RepositoryInfo.Builder("java-projects", new RepositoryStructure("package-lib.json"));
@@ -306,8 +304,8 @@ public class EclipseClasspathUtils {
 
 		//printProjectDependencyTree(projects, "ParserTools");
 		//printProjectsContainingLibsMissingLibs(projects);
-		//printProjectsContainingLibs(projects);
-		checkAndOfferToReplaceLibs();
+		printProjectsContainingLibs(projects);
+		//checkAndOfferToReplaceLibs();
 	}
 
 }

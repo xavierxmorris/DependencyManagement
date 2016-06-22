@@ -1,6 +1,4 @@
-package eclipseProject;
-
-import jarDependencies.PackageJson;
+package twg2.dependency.eclipseProject;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -11,6 +9,7 @@ import javax.xml.stream.XMLStreamException;
 
 import lombok.Getter;
 import lombok.val;
+import twg2.dependency.jar.PackageJson;
 import twg2.io.serialize.xml.XmlAttributes;
 import twg2.io.serialize.xml.XmlInput;
 import twg2.io.serialize.xml.XmlOutput;

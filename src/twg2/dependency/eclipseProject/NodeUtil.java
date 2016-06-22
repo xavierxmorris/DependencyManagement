@@ -1,4 +1,4 @@
-package eclipseProject;
+package twg2.dependency.eclipseProject;
 
 import lombok.val;
 

@@ -1,10 +1,10 @@
-package jarDependencies;
+package twg2.dependency.jar;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
 
-import twg2.meta.fieldAccess.FieldGets;
+import twg2.meta.fieldAccess.SimpleFields;
 
 import com.github.zafarkhaja.semver.Version;
 import com.github.zafarkhaja.semver.expr.Expression;
@@ -146,11 +146,11 @@ public class VersionResolution {
 	public interface OpAnd {
 
 		public static Expression getLeft(Expression expr) {
-			return (Expression) FieldGets.getSimpleField(expr.getClass(), "left").get(expr);
+			return (Expression) SimpleFields.getSimpleField(expr.getClass(), "left").get(expr);
 		}
 
 		public static Expression getRight(Expression expr) {
-			return (Expression) FieldGets.getSimpleField(expr.getClass(), "right").get(expr);
+			return (Expression) SimpleFields.getSimpleField(expr.getClass(), "right").get(expr);
 		}
 
 	}
@@ -159,7 +159,7 @@ public class VersionResolution {
 	public interface OpEqual {
 
 		public static Version getEqual(Expression expr) {
-			return (Version) FieldGets.getSimpleField(expr.getClass(), "parsedVersion").get(expr);
+			return (Version) SimpleFields.getSimpleField(expr.getClass(), "parsedVersion").get(expr);
 		}
 
 	}
@@ -168,7 +168,7 @@ public class VersionResolution {
 	public interface OpGreater {
 
 		public static Version getGreater(Expression expr) {
-			return (Version) FieldGets.getSimpleField(expr.getClass(), "parsedVersion").get(expr);
+			return (Version) SimpleFields.getSimpleField(expr.getClass(), "parsedVersion").get(expr);
 		}
 
 	}
@@ -177,7 +177,7 @@ public class VersionResolution {
 	public interface OpGreaterOrEqual {
 
 		public static Version getGreaterOrEqual(Expression expr) {
-			return (Version) FieldGets.getSimpleField(expr.getClass(), "parsedVersion").get(expr);
+			return (Version) SimpleFields.getSimpleField(expr.getClass(), "parsedVersion").get(expr);
 		}
 
 	}
@@ -186,7 +186,7 @@ public class VersionResolution {
 	public interface OpLess {
 
 		public static Version getLess(Expression expr) {
-			return (Version) FieldGets.getSimpleField(expr.getClass(), "parsedVersion").get(expr);
+			return (Version) SimpleFields.getSimpleField(expr.getClass(), "parsedVersion").get(expr);
 		}
 
 	}
@@ -195,7 +195,7 @@ public class VersionResolution {
 	public interface OpLessOrEqual {
 
 		public static Version getLessOrEqual(Expression expr) {
-			return (Version) FieldGets.getSimpleField(expr.getClass(), "parsedVersion").get(expr);
+			return (Version) SimpleFields.getSimpleField(expr.getClass(), "parsedVersion").get(expr);
 		}
 
 	}
@@ -204,7 +204,7 @@ public class VersionResolution {
 	public interface OpNot {
 
 		public static Expression getNot(Expression expr) {
-			return (Expression) FieldGets.getSimpleField(expr.getClass(), "expr").get(expr);
+			return (Expression) SimpleFields.getSimpleField(expr.getClass(), "expr").get(expr);
 		}
 
 	}
@@ -213,7 +213,7 @@ public class VersionResolution {
 	public interface OpNotEqual {
 
 		public static Version getNotEqual(Expression expr) {
-			return (Version) FieldGets.getSimpleField(expr.getClass(), "parsedVersion").get(expr);
+			return (Version) SimpleFields.getSimpleField(expr.getClass(), "parsedVersion").get(expr);
 		}
 
 	}
@@ -222,11 +222,11 @@ public class VersionResolution {
 	public interface OpOr {
 
 		public static Expression getLeft(Expression expr) {
-			return (Expression) FieldGets.getSimpleField(expr.getClass(), "left").get(expr);
+			return (Expression) SimpleFields.getSimpleField(expr.getClass(), "left").get(expr);
 		}
 
 		public static Expression getRight(Expression expr) {
-			return (Expression) FieldGets.getSimpleField(expr.getClass(), "right").get(expr);
+			return (Expression) SimpleFields.getSimpleField(expr.getClass(), "right").get(expr);
 		}
 
 	}
@@ -235,7 +235,7 @@ public class VersionResolution {
 	public interface OpComposite {
 
 		public static Expression getExpression(Expression expr) {
-			return (Expression) FieldGets.getSimpleField(expr.getClass(), "exprTree").get(expr);
+			return (Expression) SimpleFields.getSimpleField(expr.getClass(), "exprTree").get(expr);
 		}
 
 	}

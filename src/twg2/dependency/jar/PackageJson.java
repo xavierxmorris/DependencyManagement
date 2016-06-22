@@ -1,4 +1,4 @@
-package jarDependencies;
+package twg2.dependency.jar;
 
 import java.io.File;
 import java.io.FileInputStream;

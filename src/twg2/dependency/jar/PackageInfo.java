@@ -1,4 +1,4 @@
-package jarDependencies;
+package twg2.dependency.jar;
 
 import com.github.zafarkhaja.semver.Version;
 
