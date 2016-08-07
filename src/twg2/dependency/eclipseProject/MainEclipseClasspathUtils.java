@@ -31,6 +31,7 @@ import twg2.dependency.jar.PackageJson;
 import twg2.dependency.jar.PackageSet;
 import twg2.dependency.jar.RepositoryInfo;
 import twg2.dependency.jar.RepositoryStructure;
+import twg2.io.fileLoading.ValidInvalid;
 import twg2.text.stringUtils.StringCase;
 import twg2.text.stringUtils.StringSplit;
 
@@ -38,7 +39,7 @@ import twg2.text.stringUtils.StringSplit;
  * @author TeamworkGuy2
  * @since 2015-5-31
  */
-public class EclipseClasspathUtils {
+public class MainEclipseClasspathUtils {
 
 	public static Map<String, EclipseClasspathEntries> loadProjectClasspathFiles(File projectsDir) throws FileNotFoundException, IOException, XMLStreamException {
 		File[] dirs = projectsDir.listFiles((file) -> file.isDirectory() && !file.getName().startsWith("."));
@@ -78,13 +79,17 @@ public class EclipseClasspathUtils {
 
 	/**
 	 * @param type the type of class path entry imports to compare against, null to compare against all
-	 * @return a map of project directories to list of imports from the {@code doesContain} list that do not appear in that project's imports
+	 * @return a map of project directories to list of imports from the {@code doesInclude} list that do not appear in that project's imports
+	 * and a list of project names containing the {@code ifContainsList} but not the {@code doesInclude} list
 	 */
-	public static PairList<String, List<String>> getProjectsContainingLibsMissingLibs(Map<String, EclipseClasspathEntries> projectFiles, String type, List<String> ifContainsList, List<String> doesContain) throws FileNotFoundException, IOException, XMLStreamException {
+	public static ValidInvalid<PairList<String, List<String>>, List<String>> getProjectsContainingLibsMissingLibs(Map<String, EclipseClasspathEntries> projectFiles, String type, List<String> ifContainsList, List<String> doesInclude) throws FileNotFoundException, IOException, XMLStreamException {
 		PairList<String, List<String>> resultNotContain = new PairList<>();
+
+		val containsButNotIncludes = new ArrayList<String>();
 
 		for(val cpFileEntry : projectFiles.entrySet()) {
 			val cpFile = cpFileEntry.getValue();
+			val projectName = cpFile.getFile().getParentFile().getName();
 			// the list of project imports
 			List<String> importJars = ListUtil.map(cpFile.getClassPathEntries(type), (cpe) -> {
 				String[] pathParts = cpe.path.split("/");
@@ -94,17 +99,18 @@ public class EclipseClasspathUtils {
 			List<String> notContainList = new ArrayList<>();
 			// the list of does contain imports
 			if(importJars.containsAll(ifContainsList)) {
-				for(String importStr : doesContain) {
+				for(String importStr : doesInclude) {
 					if(!importJars.contains(importStr)) {
 						notContainList.add(importStr);
 					}
 				}
 				if(notContainList.size() > 0) {
-					resultNotContain.add(cpFile.getFile().getParentFile().getName(), notContainList);
+					resultNotContain.add(projectName, notContainList);
 				}
+				containsButNotIncludes.add(projectName);
 			}
 		}
-		return resultNotContain;
+		return ValidInvalid.of(resultNotContain, containsButNotIncludes);
 	}
 
 
@@ -168,48 +174,55 @@ public class EclipseClasspathUtils {
 	public static final String libNameToProjectName(String libName) {
 		String projName = StringCase.toTitleCase(libName);
 		if(projName.startsWith("J") && !projName.startsWith("Json") && !projName.startsWith("Jackson")) {
-			projName = "" + Character.toUpperCase(projName.charAt(0)) + Character.toUpperCase(projName.charAt(1)) + projName.substring(2);
+			projName = Character.toUpperCase(projName.charAt(0)) + Character.toUpperCase(projName.charAt(1)) + projName.substring(2);
 		}
 		return projName;
 	}
 
 
-	public static void printProjectsContainingLibs(File projects) throws FileNotFoundException, IOException, XMLStreamException {
-		List<String> expectImports = Arrays.asList("jmeta_access.jar");
+	public static void printProjectsContainingLibs(File projects, String... expectedImports) throws FileNotFoundException, IOException, XMLStreamException {
+		List<String> expectImports = Arrays.asList(expectedImports);
 		boolean containsAll = true;
 
 		val projectFiles = loadProjectClasspathFiles(projects);
 		val projFiles = getProjectsContainingLibs(projectFiles, null, expectImports, containsAll);
+
+		System.out.println("Projects containing packages " + expectImports.toString() + ":");
+
 		val res = printSorted(projFiles.entrySet(), (p) -> p.getKey(), (a, b) -> a.compareTo(b));
 
-		System.out.println("\ncount: " + res.size() + " (total: " + projectFiles.size() + ")");
+		System.out.println("\ncount: " + res.size() + " (total: " + projectFiles.size() + ")\n");
 	}
 
 
-	public static void printProjectsContainingLibsMissingLibs(File projects) throws FileNotFoundException, IOException, XMLStreamException {
-		List<String> expectImports = Arrays.asList("jrange.jar");
-		List<String> doesContain = Arrays.asList("");
+	public static void printProjectsContainingLibsMissingLibs(File projects, List<String> expectedImports, String doesContainAry) throws FileNotFoundException, IOException, XMLStreamException {
+		List<String> doesContain = Arrays.asList(doesContainAry);
 		//List<String> expectImports = Arrays.asList("jdata_util.jar", "jtext_util.jar", "type_util.jar", "jstream_util.jar", "ranges_util.jar", "jcollection_util.jar", "jfunction_util.jar", "parser_string.jar");
 		//List<String> doesContain = Arrays.asList("io_util");
 
 		val projectFiles = loadProjectClasspathFiles(projects);
-		PairList<String, List<String>> res = getProjectsContainingLibsMissingLibs(projectFiles, null, expectImports, doesContain);
+		val resRes = getProjectsContainingLibsMissingLibs(projectFiles, null, expectedImports, doesContain);
+		val res = resRes.valid;
+		val filteredProjects = resRes.invalid;
 
+		System.out.println("Projects containing packages " + expectedImports + " but missing " + doesContain.toString() + ":");
+		List<String> missingImports = new ArrayList<String>();
 		for(int i = 0, size = res.size(); i < size; i++) {
-			System.out.println("project: " + res.getKey(i));
 			for(String missingImport : res.getValue(i)) {
-				System.out.println("\tmissing: " + missingImport);
+				missingImports.add(missingImport);
 			}
+			System.out.println(res.getKey(i) + " - " + missingImports.toString());
+			missingImports.clear();
 		}
-		System.out.println("\ncount: " + res.size());
+		System.out.println("\ncount: " + res.size() + " of (" + filteredProjects.size() + " filtered) (" + projectFiles.size() + " total)\n");
 	}
 
 
 	/** Load a classpath file, remove existing libs, load with libs from PackageJson, print before and after classpath files to System.out
 	 */
 	public static void checkAndOfferToReplaceLibs() throws IOException, TransformerException {
-		val projsPath = Paths.get("C:/Users/TeamworkGuy2/Documents/Java/Projects/");
-		val libsPath = Paths.get("C:/Users/TeamworkGuy2/Documents/Java/Libraries/");
+		val projsPath = Paths.get("/home/TeamworkGuy2/Documents/Java/Projects/");
+		val libsPath = Paths.get("/home/TeamworkGuy2/Documents/Java/Libraries/");
 
 		// load .classpath dependencies
 		val classPathFile = new File(projsPath.toFile(), "JParserDataTypeLike/.classpath");
@@ -300,11 +313,11 @@ public class EclipseClasspathUtils {
 
 
 	public static void main(String[] args) throws FileNotFoundException, IOException, XMLStreamException, TransformerException {
-		File projects = new File("C:/Users/TeamworkGuy2/Documents/Java/Projects");
+		File projects = new File("/home/TeamworkGuy2/Documents/Java/Projects");
 
 		//printProjectDependencyTree(projects, "ParserTools");
-		//printProjectsContainingLibsMissingLibs(projects);
-		printProjectsContainingLibs(projects);
+		printProjectsContainingLibsMissingLibs(projects, Arrays.asList("jrange.jar"), "jcollection_interfaces.jar");
+		printProjectsContainingLibs(projects, "jbuffers.jar");
 		//checkAndOfferToReplaceLibs();
 	}
 

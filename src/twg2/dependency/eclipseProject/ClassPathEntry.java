@@ -14,14 +14,17 @@ import twg2.io.serialize.xml.XmlAttributes;
 import twg2.io.serialize.xml.XmlInput;
 import twg2.io.serialize.xml.XmlOutput;
 import twg2.io.serialize.xml.Xmlable;
-import twg2.text.stringUtils.StringCompare;
+import twg2.text.stringSearch.StringCompare;
 
 /**
  * @author TeamworkGuy2
  * @since 2015-5-25
  */
-public class ClassPathEntry implements Xmlable {
-	private static String CLASS_PATH_ENTRY_KEY = "classpathentry";
+public class ClassPathEntry implements Comparable<ClassPathEntry>, Xmlable {
+	private static String nwln = System.getProperty("line.separator");
+	public static String CLASS_PATH_ENTRY_KEY = "classpathentry";
+	public static String inbetweenElementText = "\n\t";
+
 	// package-private
 	@Getter String kind;
 	@Getter String path;
@@ -109,8 +112,28 @@ public class ClassPathEntry implements Xmlable {
 
 
 	@Override
+	public int compareTo(ClassPathEntry other) {
+		// 'src' entries come first
+		boolean thisSrc = "src".equals(this.kind);
+		boolean otherSrc = "src".equals(other.kind);
+		if(thisSrc || otherSrc) {
+			int diff = (thisSrc && otherSrc ? this.path.compareTo(other.path) : thisSrc ? -1 : 1);
+			return diff;
+		}
+		int diff = this.kind.compareTo(other.kind);
+		if(diff == 0) { diff = this.path.compareTo(other.path); }
+		return diff;
+	}
+
+
+	@Override
 	public String toString() {
 		return CLASS_PATH_ENTRY_KEY + " " + kind + ": " + path + (sourcePath != null ? (", " + sourcePath) : "");
+	}
+
+
+	public String toXml() {
+		return "<" + CLASS_PATH_ENTRY_KEY + " kind=\"" + kind + "\" path=\"" + path + "\"" + (sourcePath != null ? " sourcepath=\"" + sourcePath + "\"" : "") + "/>";
 	}
 
 
@@ -131,7 +154,7 @@ public class ClassPathEntry implements Xmlable {
 		try {
 			val kind = "lib";
 			// TODO add support for CSS-dash-case
-			val projName = EclipseClasspathUtils.libNameToProjectName(pkg.getName().replace('-', '_'));
+			val projName = MainEclipseClasspathUtils.libNameToProjectName(pkg.getName().replace('-', '_'));
 			val sourcePath = '/' + projName;
 			val path = basePackagesPath.resolve(pkg.getName() + '/' + pkg.getPropString("main")).toRealPath().toString().replace('\\', '/');
 			return new ClassPathEntry(kind, path, sourcePath);

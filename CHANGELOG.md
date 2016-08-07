@@ -4,7 +4,20 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-###[0.2.0](N/A) - 2016-06-21
+###[0.2.1](N/A) - 2016-08-07
+####Added
+* twg2.dependency.git.MainFindGit for finding projects using or not using git
+* new ClasspathExampleFile and ClasspathReplaceFile tests
+
+####Changed
+* Renamed EclipseClasspathUtils -> MainEclipseClasspathUtils
+* ClassPathEntry now implements Comparable
+* EclipseClasspathDoc addClassPathEntry() and removeClassPathEntry()
+* NodeUtil methods for filtering, mapping, and insertAfter()
+
+
+--------
+###[0.2.0](https://github.com/TeamworkGuy2/DependencyShift/commit/a5a7c3de2fcdbdbd41ffdd26b26681f8fc9451dd) - 2016-06-21
 ####Changed
 * Switched from versions.md to CHANGELOG.md format, see http://keepachangelog.com/
 * Renamed packages to share 'twg2.dependency' package prefix

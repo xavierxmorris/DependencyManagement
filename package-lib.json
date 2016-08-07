@@ -1,0 +1,23 @@
+{
+	"version" : "0.2.1",
+	"name" : "dependency-management",
+	"description" : "Shift dependency management for small, personally repository, groups of Java Eclipse projects to automated tools",
+	"homepage" : "https://github.com/TeamworkGuy2/DependencyShift",
+	"license" : "MIT",
+	"main" : "./jar/dependency_management.jar",
+	"dependencies" : {
+		"data-transfer": "*",
+		"jackson-annotations": "~2.5.0",
+		"jackson-core": "~2.5.0",
+		"jackson-databind": "~2.5.0",
+		"jsemver": "~0.9.0",
+		"jcollection-interfaces": "*",
+		"jcollection-util": "*",
+		"jfile-io": "*",
+		"jfunc": "*",
+		"jmeta-access": "*",
+		"jsemver": "*",
+		"json-io": "*",
+		"jtext-util": "*"
+	}
+}
