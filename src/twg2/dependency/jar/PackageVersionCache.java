@@ -2,6 +2,8 @@ package twg2.dependency.jar;
 
 import java.util.List;
 
+import twg2.dependency.models.PackageJson;
+
 import com.github.zafarkhaja.semver.expr.Expression;
 
 /** A package cache which allows package lookups by name and filtering by version number

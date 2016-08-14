@@ -27,11 +27,15 @@ import twg2.collections.builder.ListDiff;
 import twg2.collections.builder.ListDiff.AddedRemoved;
 import twg2.collections.builder.ListUtil;
 import twg2.collections.dataStructures.PairList;
-import twg2.dependency.jar.PackageJson;
+import twg2.dependency.git.GitStatus;
+import twg2.dependency.jar.LibrarySet;
 import twg2.dependency.jar.PackageSet;
 import twg2.dependency.jar.RepositoryInfo;
 import twg2.dependency.jar.RepositoryStructure;
+import twg2.dependency.models.LibraryJson;
+import twg2.dependency.models.PackageJson;
 import twg2.io.fileLoading.ValidInvalid;
+import twg2.io.json.Json;
 import twg2.text.stringUtils.StringCase;
 import twg2.text.stringUtils.StringSplit;
 
@@ -49,7 +53,7 @@ public class MainEclipseClasspathUtils {
 			File file = new File(proj, ".classpath");
 			//val xmlReader = XmlHandler.createXMLReader(new FileReader(file), true, true, true);
 			//val parsedCp = EclipseClasspathFile.readXml(file, xmlReader);
-			val parsedCp = EclipseClasspathDoc.loadXmlDom(file, new FileInputStream(file));
+			val parsedCp = EclipseClasspathDoc.fromXml(file, new FileInputStream(file));
 			projectFiles.put(proj.getName(), parsedCp);
 		}
 
@@ -82,7 +86,8 @@ public class MainEclipseClasspathUtils {
 	 * @return a map of project directories to list of imports from the {@code doesInclude} list that do not appear in that project's imports
 	 * and a list of project names containing the {@code ifContainsList} but not the {@code doesInclude} list
 	 */
-	public static ValidInvalid<PairList<String, List<String>>, List<String>> getProjectsContainingLibsMissingLibs(Map<String, EclipseClasspathEntries> projectFiles, String type, List<String> ifContainsList, List<String> doesInclude) throws FileNotFoundException, IOException, XMLStreamException {
+	public static ValidInvalid<PairList<String, List<String>>, List<String>> getProjectsContainingLibsMissingLibs(Map<String, EclipseClasspathEntries> projectFiles,
+			String type, List<String> ifContainsList, List<String> doesInclude) throws FileNotFoundException, IOException, XMLStreamException {
 		PairList<String, List<String>> resultNotContain = new PairList<>();
 
 		val containsButNotIncludes = new ArrayList<String>();
@@ -174,7 +179,7 @@ public class MainEclipseClasspathUtils {
 	public static final String libNameToProjectName(String libName) {
 		String projName = StringCase.toTitleCase(libName);
 		if(projName.startsWith("J") && !projName.startsWith("Json") && !projName.startsWith("Jackson")) {
-			projName = Character.toUpperCase(projName.charAt(0)) + Character.toUpperCase(projName.charAt(1)) + projName.substring(2);
+			projName = "" + Character.toUpperCase(projName.charAt(0)) + Character.toUpperCase(projName.charAt(1)) + projName.substring(2);
 		}
 		return projName;
 	}
@@ -221,30 +226,42 @@ public class MainEclipseClasspathUtils {
 	/** Load a classpath file, remove existing libs, load with libs from PackageJson, print before and after classpath files to System.out
 	 */
 	public static void checkAndOfferToReplaceLibs() throws IOException, TransformerException {
-		val projsPath = Paths.get("/home/TeamworkGuy2/Documents/Java/Projects/");
-		val libsPath = Paths.get("/home/TeamworkGuy2/Documents/Java/Libraries/");
+		val projsPath = Paths.get("C:/Users/TeamworkGuy2/Documents/Java/Projects/");
+		val libsPath = Paths.get("C:/Users/TeamworkGuy2/Documents/Java/Libraries/");
 
 		// load .classpath dependencies
-		val classPathFile = new File(projsPath.toFile(), "JParserDataTypeLike/.classpath");
-		val doc = EclipseClasspathDoc.loadXmlDom(classPathFile, new FileInputStream(classPathFile));
+		val classPathFile = new File(projsPath.toFile(), "DependencyManagement/.classpath");
+		val doc = EclipseClasspathDoc.fromXml(classPathFile, new FileInputStream(classPathFile));
 		//val cpEntries = doc.getLibClassPathEntries();
 
 		// load all library package-lib.json files
 		val javaRepoBldr = new RepositoryInfo.Builder("java-projects", new RepositoryStructure("package-lib.json"));
 		javaRepoBldr.addRepository(projsPath);
 		val projSet = new PackageSet(Arrays.asList(javaRepoBldr.build()));
+		val libNodes = Json.getDefaultInst().getObjectMapper().readTree(new File("C:/Users/TeamworkGuy2/Documents/Java/Libraries/libraries.json")).get("libraries").iterator();
+		val libs = new LibrarySet(ListUtil.map(libNodes, (node) -> new LibraryJson().fromJson(node)));
 
 		// load target project package-lib.json dependencies
-		val packageFile = new File(projsPath.toFile(), "JParserDataTypeLike/package-lib.json");
-		val pkgInfo = PackageJson.read(packageFile.toString());
-		val pkgDependencies = projSet.loadDependencies(pkgInfo);
-		val pkgClassPathEntries = ListUtil.map(pkgDependencies.entrySet(), (e) -> ClassPathEntry.fromPackageLib(e.getValue().getKey(), libsPath));
+		val packageFile = new File(projsPath.toFile(), "DependencyManagement/package-lib.json");
+		val pkgInfo = new PackageJson().fromJsonFile(packageFile.toString());
+		val pkgDependencies = projSet.loadDependencies(pkgInfo, libs);
+		val pkgClassPathEntries = ListUtil.map(pkgDependencies.entrySet(), (e) -> {
+			if(e.getValue().isPackage()) {
+				return ClassPathEntry.fromDependency(e.getValue().getPackageInfo(), libsPath);
+			}
+			else if(e.getValue().isLibrary()) {
+				return ClassPathEntry.fromDependency(e.getValue().getLibraryInfo(), libsPath);
+			}
+			else {
+				throw new Error("dependency '" + e.getValue() + "' is not a package or library, no other known valid type");
+			}
+		});
 		pkgClassPathEntries.sort((a, b) -> a.getPath().compareTo(b.getPath()));
 
 		// print original .classpath dependencies
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		System.out.println("original:\n");
-		doc.saveXmlDom(out);
+		doc.toXml(out);
 		val originalXml = new String(out.toByteArray(), "UTF-8");
 		System.out.println(originalXml);
 
@@ -252,13 +269,13 @@ public class MainEclipseClasspathUtils {
 		val libsDiff = ListDiff.diff(oldLibs, pkgClassPathEntries);
 
 		// remove existing libs from .classpath, add parsed package-lib.json dependencies
-		EclipseClasspathReplace.removeLibs(doc.doc);
-		EclipseClasspathReplace.addLibs(doc.doc, pkgClassPathEntries);
+		EclipseClasspathXmlManipulator.removeAllLibs(doc.doc);
+		EclipseClasspathXmlManipulator.addLibs(doc.doc, pkgClassPathEntries);
 
 		// print new .classpath dependencies
 		out = new ByteArrayOutputStream();
 		System.out.println("\n\n====\n\nModified:\n");
-		doc.saveXmlDom(out);
+		doc.toXml(out);
 		val resultXml = new String(out.toByteArray(), "UTF-8");
 		System.out.println(resultXml);
 
@@ -313,12 +330,12 @@ public class MainEclipseClasspathUtils {
 
 
 	public static void main(String[] args) throws FileNotFoundException, IOException, XMLStreamException, TransformerException {
-		File projects = new File("/home/TeamworkGuy2/Documents/Java/Projects");
+		File projects = new File("C:/Users/TeamworkGuy2/Documents/Java/Projects");
 
 		//printProjectDependencyTree(projects, "ParserTools");
-		printProjectsContainingLibsMissingLibs(projects, Arrays.asList("jrange.jar"), "jcollection_interfaces.jar");
-		printProjectsContainingLibs(projects, "jbuffers.jar");
-		//checkAndOfferToReplaceLibs();
+		//printProjectsContainingLibsMissingLibs(projects, Arrays.asList("jrange.jar"), "jcollection_interfaces.jar");
+		//printProjectsContainingLibs(projects, "jbuffers.jar");
+		checkAndOfferToReplaceLibs();
 	}
 
 }

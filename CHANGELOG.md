@@ -4,9 +4,31 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-###[0.2.1](N/A) - 2016-08-07
+###[0.3.0](N/A) - 2016-08-14
 ####Added
-* twg2.dependency.git.MainFindGit for finding projects using or not using git
+* Proper support for project 3rd party library dependencies (from .classpath files)
+  * Added JsonObject as an interface (with static methods) for classes that can read/write JSON data
+  * Added LibraryJson for modeling a 3rd party jar file dependency
+  * Added DependencyInfo as a parent interface for any type of project dependency (currently PackageJson and LibraryJson)
+  * Added LibrarySet for tracking and looking up a project's dependencies by name and version
+* Basic git status lookup
+  * Added GitStatus for listing modified files in a project using 'git status'
+
+####Changed
+* Merged and renamed EclipseClasspath* files to ensure one source for each piece of info and operation
+  * EclipseClasspathFile moved into EclipseClasspathDoc and EclipseClasspathEntries
+  * Renamed EclipseClasspathReplace -> EclipseClasspathXmlManipulator
+* Moved PackageJson and NameVersion to new twg2.dependency.models package
+
+####Removed
+* PackageInfo - PackageJson now has all the same fields
+* EclipseClasspathFile - use EclipseClasspathDoc instead
+
+
+--------
+###[0.2.1](https://github.com/TeamworkGuy2/DependencyShift/commit/16004a75df34557c28a460650952e2e061c05243) - 2016-08-07
+####Added
+* MainFindGit for finding projects using or not using git
 * new ClasspathExampleFile and ClasspathReplaceFile tests
 
 ####Changed

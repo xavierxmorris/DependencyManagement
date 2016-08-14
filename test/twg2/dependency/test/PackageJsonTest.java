@@ -1,6 +1,7 @@
 package twg2.dependency.test;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 
@@ -9,9 +10,11 @@ import lombok.val;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import twg2.collections.builder.MapBuilder;
 import twg2.collections.tuple.Tuples;
-import twg2.dependency.jar.PackageJson;
+import twg2.dependency.models.PackageJson;
 import twg2.io.json.Json;
 import twg2.text.stringUtils.StringJoin;
 
@@ -64,9 +67,9 @@ public class PackageJsonTest {
 	}, "\n").replace('\'', '"');
 
 
-	public static final PackageJson loadPackage1() {
+	public static final PackageJson loadPackage1() throws JsonProcessingException, IOException {
 		try {
-			return PackageJson.read(Json.getDefaultInst(), new ByteArrayInputStream(pkg1Src.getBytes("UTF-8")));
+			return new PackageJson().fromJson(Json.getDefaultInst().getObjectMapper().readTree(new ByteArrayInputStream(pkg1Src.getBytes("UTF-8"))));
 		} catch (UnsupportedEncodingException e) {
 			throw new UncheckedIOException(e);
 		}
@@ -74,11 +77,11 @@ public class PackageJsonTest {
 
 
 	@Test
-	public void saveLoad() throws UnsupportedEncodingException {
+	public void saveLoad() throws JsonProcessingException, IOException {
 		val pkg1 = loadPackage1();
 
 		StringBuilder dst = new StringBuilder();
-		pkg1.write(Json.getDefaultInst(), dst);
+		pkg1.toJson(Json.getDefaultInst(), dst);
 
 		Assert.assertEquals("3.5.3", pkg1.getVersion());
 		Assert.assertEquals(pkg1Name, pkg1.getName());

@@ -6,14 +6,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import lombok.val;
 import twg2.collections.dataStructures.SortedList;
-import twg2.collections.tuple.Tuples;
+import twg2.dependency.models.LibraryJson;
+import twg2.dependency.models.NameVersion;
+import twg2.dependency.models.PackageJson;
 
 import com.github.zafarkhaja.semver.Parser;
-import com.github.zafarkhaja.semver.Version;
 import com.github.zafarkhaja.semver.expr.Expression;
 import com.github.zafarkhaja.semver.expr.ExpressionParser;
 
@@ -24,7 +24,7 @@ import com.github.zafarkhaja.semver.expr.ExpressionParser;
 public class PackageSet implements PackageVersionCache {
 	public static Parser<Expression> versionDependencyParser = ExpressionParser.newInstance();
 
-	private Map<String, List<PackageInfo>> projects;
+	private Map<String, List<PackageJson>> projects;
 
 
 	/** Create a package set by loading package information from a group of {@link RepositoryInfo repositories}
@@ -40,24 +40,22 @@ public class PackageSet implements PackageVersionCache {
 					val pkgInfo = structure.loadProjectInfo(proj);
 					if(pkgInfo != null) {
 						val pkgName = pkgInfo.getName();
-						val verStr = pkgInfo.getVersion();
-						val ver = Version.valueOf(verStr);
-						val pkgVerRepo = new PackageInfo(pkgName, ver, pkgInfo, repo);
+						val ver = pkgInfo.getVersionExpr();
 
-						List<PackageInfo> pkgSet = projects.get(pkgName);
+						List<PackageJson> pkgSet = projects.get(pkgName);
 						if(pkgSet == null) {
 							pkgSet = new ArrayList<>();
 							projects.put(pkgName, pkgSet);
 						}
 						else {
 							for(val existingPkg : pkgSet) {
-								if(ver.equals(existingPkg.pkgVersion)) {
-									throw new IllegalArgumentException("two projects have same name and version '" + existingPkg.pkgInfo.getNameVersion() + "'");
+								if(ver.equals(existingPkg.getVersionExpr())) {
+									throw new IllegalArgumentException("two projects have same name '" + existingPkg.getName() + "' and version '" + existingPkg.getNameVersion() + "'");
 								}
 							}
 						}
-						SortedList.addItem(pkgSet, pkgVerRepo, (a, b) -> a.pkgVersion.compareTo(b.pkgVersion));
-						pkgSet.add(pkgVerRepo);
+						SortedList.addItem(pkgSet, pkgInfo, (a, b) -> a.getVersionExpr().compareTo(b.getVersionExpr()));
+						pkgSet.add(pkgInfo);
 					}
 				} catch (IOException e) {
 					throw new IOException("failed to read project info for '" + proj + "' of repository '" + repo.getName() + "'");
@@ -75,28 +73,26 @@ public class PackageSet implements PackageVersionCache {
 		this.projects = new HashMap<>();
 		for(val pkg : pkgs) {
 			val pkgName = pkg.getName();
-			val verStr = pkg.getVersion();
-			val ver = Version.valueOf(verStr);
-			val pkgVerRepoTuple = new PackageInfo(pkgName, ver, pkg, (RepositoryInfo)null);
+			val ver = pkg.getVersionExpr();
 
-			List<PackageInfo> pkgSet = projects.get(pkgName);
+			List<PackageJson> pkgSet = projects.get(pkgName);
 			if(pkgSet == null) {
 				pkgSet = new ArrayList<>();
 				projects.put(pkgName, pkgSet);
 			}
 			else {
 				for(val existingPkg : pkgSet) {
-					if(ver.equals(existingPkg.pkgVersion)) {
-						throw new IllegalArgumentException("two projects have same name and version '" + existingPkg.pkgInfo.getNameVersion() + "'");
+					if(ver.equals(existingPkg.getVersionExpr())) {
+						throw new IllegalArgumentException("two projects have same name and version '" + existingPkg.getNameVersion() + "'");
 					}
 				}
 			}
-			SortedList.addItem(pkgSet, pkgVerRepoTuple, (a, b) -> a.pkgVersion.compareTo(b.pkgVersion));
+			SortedList.addItem(pkgSet, pkg, (a, b) -> a.getVersionExpr().compareTo(b.getVersionExpr()));
 		}
 	}
 
 
-	public Map<String, List<PackageInfo>> getProjects() {
+	public Map<String, List<PackageJson>> getProjects() {
 		return projects;
 	}
 
@@ -126,17 +122,19 @@ public class PackageSet implements PackageVersionCache {
 	@Override
 	public PackageJson getProjectLatest(String name) {
 		val list = projects.get(name);
-		return list.size() > 0 ? list.get(list.size() - 1).pkgInfo : null;
+		return list.size() > 0 ? list.get(list.size() - 1) : null;
 	}
 
 
 	@Override
-	public PackageJson getProjectLatest(String name, Expression expr) {
+	public PackageJson getProjectLatest(String name, Expression versionReqirement) {
 		val list = projects.get(name);
+		if(list == null) { return null; }
+
 		for(int i = list.size() - 1; i > -1; i--) {
 			val pkgInfo = list.get(i);
-			if(expr.interpret(pkgInfo.pkgVersion)) {
-				return pkgInfo.pkgInfo;
+			if(versionReqirement.interpret(pkgInfo.getVersionExpr())) {
+				return pkgInfo;
 			}
 		}
 		return null;
@@ -162,7 +160,7 @@ public class PackageSet implements PackageVersionCache {
 	public List<PackageJson> getProjects(String name, List<PackageJson> dst) {
 		val list = projects.get(name);
 		for(int i = 0, size = list.size(); i < size; i++) {
-			dst.add(list.get(i).pkgInfo);
+			dst.add(list.get(i));
 		}
 		return dst;
 	}
@@ -172,8 +170,8 @@ public class PackageSet implements PackageVersionCache {
 		val list = projects.get(name);
 		for(int i = 0, size = list.size(); i < size; i++) {
 			val pkgInfo = list.get(i);
-			if(expr.interpret(pkgInfo.pkgVersion)) {
-				dst.add(pkgInfo.pkgInfo);
+			if(expr.interpret(pkgInfo.getVersionExpr())) {
+				dst.add(pkgInfo);
 			}
 		}
 		return dst;
@@ -183,20 +181,20 @@ public class PackageSet implements PackageVersionCache {
 	/** Load package dependencies recursively
 	 * @param pkg
 	 */
-	public Map<NameVersion, Entry<PackageJson, List<PackageJson>>> loadDependencies(PackageJson pkg) {
-		val dst = new HashMap<NameVersion, Entry<PackageJson, List<PackageJson>>>();
-		_loadDependencies(this, pkg, dst);
+	public Map<NameVersion, DependencyAndDependents> loadDependencies(PackageJson pkg, LibrarySet libSet) {
+		val dst = new HashMap<NameVersion, DependencyAndDependents>();
+		_loadDependencies(this, pkg, libSet, dst);
 		return dst;
 	}
 
 
-	public Map<NameVersion, Entry<PackageJson, List<PackageJson>>> loadDependencies(PackageJson pkg, Map<NameVersion, Entry<PackageJson, List<PackageJson>>> pkgInfoToDependents) {
-		_loadDependencies(this, pkg, pkgInfoToDependents);
-		return pkgInfoToDependents;
+	public Map<NameVersion, DependencyAndDependents> loadDependencies(PackageJson pkg, LibrarySet libSet, Map<NameVersion, DependencyAndDependents> pkgInfoToDependentsDst) {
+		_loadDependencies(this, pkg, libSet, pkgInfoToDependentsDst);
+		return pkgInfoToDependentsDst;
 	}
 
 
-	private static final void _loadDependencies(PackageSet projSet, PackageJson pkg, Map<NameVersion, Entry<PackageJson, List<PackageJson>>> pkgInfoToDependents) {
+	private static final void _loadDependencies(PackageSet projSet, PackageJson pkg, LibrarySet libSet, Map<NameVersion, DependencyAndDependents> pkgInfoToDependents) {
 		// TODO debugging
 		System.out.println("resolve: " + pkg + ", dependencies: " + pkg.getDependencies());
 
@@ -204,25 +202,45 @@ public class PackageSet implements PackageVersionCache {
 			val depVer = PackageSet.versionDependencyParser.parse(dep.getValue());
 			// get the latest matching package
 			val childDep = projSet.getProjectLatest(dep.getKey(), depVer);
-			val nameVer = new NameVersion(dep.getKey(), Version.valueOf(childDep.getVersion()));
+			LibraryJson libDep = null;
+			NameVersion nameVer = null;
+			if(childDep == null) {
+				if(libSet == null) {
+					throw new RuntimeException("could not find dependency '" + dep.getKey() + "@" + dep.getValue() + "'");
+				}
+				else {
+					libDep = libSet.getLatestVersion(dep.getKey(), depVer);
+					if(libDep == null) {
+						throw new RuntimeException("could not find dependency library '" + dep.getKey() + "@" + dep.getValue() + "'");
+					}
+					else {
+						nameVer = new NameVersion(dep.getKey(), libDep.getVersionExpr());
+					}
+				}
+			}
+			else {
+				nameVer = new NameVersion(dep.getKey(), childDep.getVersionExpr());
+			}
 
-			// If the 
+			// If the list of dependencies does not yet contain this dependency name-version combination
 			if(!pkgInfoToDependents.containsKey(nameVer)) {
-				Entry<PackageJson, List<PackageJson>> dependentsEntry = pkgInfoToDependents.get(nameVer);
+				DependencyAndDependents dependentsEntry = pkgInfoToDependents.get(nameVer);
 				if(dependentsEntry == null) {
-					dependentsEntry = Tuples.of(childDep, new ArrayList<PackageJson>());
+					dependentsEntry = new DependencyAndDependents(childDep, libDep);
 					pkgInfoToDependents.put(nameVer, dependentsEntry);
 				}
-				dependentsEntry.getValue().add(pkg);
+				dependentsEntry.addDependent(pkg);
 
-				_loadDependencies(projSet, childDep, pkgInfoToDependents);
+				if(childDep != null) {
+					_loadDependencies(projSet, childDep, libSet, pkgInfoToDependents);
+				}
 			}
 
 			// TODO debugging
 			else {
 				System.out.println("skip resolving existing library '" + dep + "'");
 
-				pkgInfoToDependents.get(nameVer).getValue().add(pkg);
+				pkgInfoToDependents.get(nameVer).addDependent(pkg);
 			}
 		}
 	}

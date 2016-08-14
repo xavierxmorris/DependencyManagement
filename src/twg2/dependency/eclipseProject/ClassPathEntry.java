@@ -1,5 +1,6 @@
 package twg2.dependency.eclipseProject;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
@@ -9,7 +10,8 @@ import javax.xml.stream.XMLStreamException;
 
 import lombok.Getter;
 import lombok.val;
-import twg2.dependency.jar.PackageJson;
+import twg2.collections.dataStructures.PairList;
+import twg2.dependency.models.DependencyInfo;
 import twg2.io.serialize.xml.XmlAttributes;
 import twg2.io.serialize.xml.XmlInput;
 import twg2.io.serialize.xml.XmlOutput;
@@ -21,7 +23,6 @@ import twg2.text.stringSearch.StringCompare;
  * @since 2015-5-25
  */
 public class ClassPathEntry implements Comparable<ClassPathEntry>, Xmlable {
-	private static String nwln = System.getProperty("line.separator");
 	public static String CLASS_PATH_ENTRY_KEY = "classpathentry";
 	public static String inbetweenElementText = "\n\t";
 
@@ -29,6 +30,7 @@ public class ClassPathEntry implements Comparable<ClassPathEntry>, Xmlable {
 	@Getter String kind;
 	@Getter String path;
 	@Getter String sourcePath;
+	private PairList<String, String> attributes;
 
 
 	public ClassPathEntry() {
@@ -39,6 +41,14 @@ public class ClassPathEntry implements Comparable<ClassPathEntry>, Xmlable {
 		this.kind = kind;
 		this.path = path;
 		this.sourcePath = sourcePath;
+	}
+
+
+	public PairList<String, String> getAttributes() {
+		if(this.attributes == null) {
+			this.attributes = new PairList<>(4);
+		}
+		return this.attributes;
 	}
 
 
@@ -150,17 +160,45 @@ public class ClassPathEntry implements Comparable<ClassPathEntry>, Xmlable {
 	}
 
 
-	public static ClassPathEntry fromPackageLib(PackageJson pkg, Path basePackagesPath) {
+	public static ClassPathEntry fromDependency(DependencyInfo dep, Path basePackagesPath) {
 		try {
 			val kind = "lib";
 			// TODO add support for CSS-dash-case
-			val projName = MainEclipseClasspathUtils.libNameToProjectName(pkg.getName().replace('-', '_'));
-			val sourcePath = '/' + projName;
-			val path = basePackagesPath.resolve(pkg.getName() + '/' + pkg.getPropString("main")).toRealPath().toString().replace('\\', '/');
-			return new ClassPathEntry(kind, path, sourcePath);
+			val projName = MainEclipseClasspathUtils.libNameToProjectName(dep.getName().replace('-', '_'));
+
+			val path = dependencyPath(basePackagesPath, dep, dep.getMain());
+
+			String sourcePath = dep.getPropStringOptional("sourcepath", null);
+			sourcePath = sourcePath != null ?
+					(absFile(new File(sourcePath)) ? sourcePath : dependencyPath(basePackagesPath, dep, sourcePath)) :
+					(dep.isPackage() ? '/' + projName : null);
+
+			val cpe = new ClassPathEntry(kind, path, sourcePath);
+
+			String javadoc = dep.getPropStringOptional("javadoc", null);
+			if(javadoc != null) {
+				val javadocFile = new File(javadoc);
+				javadoc = "file:/" + (absFile(javadocFile) ? javadoc : dependencyPath(basePackagesPath, dep, javadoc));
+				if(javadoc.endsWith("jar")) {
+					javadoc = "jar:" + javadoc + "!/";
+				}
+				cpe.getAttributes().add("javadoc_location", javadoc);
+			}
+
+			return cpe;
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
+	}
+
+
+	private static boolean absFile(File f) {
+		return f.isFile() && f.canRead() && f.isAbsolute();
+	}
+
+
+	private static String dependencyPath(Path basePath, DependencyInfo dependency, String relativePath) throws IOException {
+		return basePath.resolve(dependency.getName() + '/' + relativePath).toRealPath().toString().replace('\\', '/');
 	}
 
 }

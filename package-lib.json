@@ -1,10 +1,10 @@
 {
-	"version" : "0.2.1",
+	"version" : "0.3.0",
 	"name" : "dependency-management",
 	"description" : "Shift dependency management for small, personally repository, groups of Java Eclipse projects to automated tools",
 	"homepage" : "https://github.com/TeamworkGuy2/DependencyShift",
 	"license" : "MIT",
-	"main" : "./jar/dependency_management.jar",
+	"main" : "./bin/dependency_management.jar",
 	"dependencies" : {
 		"data-transfer": "*",
 		"jackson-annotations": "~2.5.0",

@@ -9,10 +9,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.StringJoiner;
 
 import lombok.val;
 import twg2.collections.builder.AddCondition;
 import twg2.collections.builder.ListAdd;
+import twg2.collections.builder.ListUtil;
 import twg2.io.files.FileFilterUtil;
 import twg2.text.stringUtils.StringJoin;
 
@@ -60,7 +62,16 @@ public class MainFindGit {
 
 
 	public static void main(String[] args) {
+		val gitPath = "\"C:/Program Files (x86)/Git/bin/git.exe\"";
 		val path = Paths.get("C:/Users/TeamworkGuy2/Documents/Java/Projects/");
+
+		val modifiedGitFiles = GitStatus.runGitStatus(new GitStatus.Options(gitPath, path.resolve(Paths.get("DependencyManagement")).toString()));
+
+		val filesOfInterest = ListUtil.filter(modifiedGitFiles, (fi) -> !fi.path.endsWith("CHANGELOG.md"));
+		System.out.println("git modified files:\n\t" + StringJoin.Objects.join(filesOfInterest, "\n\t") + "\n");
+
+		if(3.1/1.4 > 1.6) { return; }
+
 		val projects = getProjectDirs(list(path));
 		val res = filterDirs(projects);
 

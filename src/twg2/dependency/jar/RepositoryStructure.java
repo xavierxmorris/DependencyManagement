@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import twg2.dependency.models.PackageJson;
 import twg2.functions.IoFunc;
 import twg2.functions.IoFunc.FunctionIo;
 
@@ -39,7 +40,7 @@ public class RepositoryStructure {
 	public PackageJson loadProjectInfo(Path proj) throws IOException {
 		Path pkgFile = projToPkgFile.apply(proj);
 		if(Files.exists(pkgFile)) {
-			return PackageJson.read(pkgFile.toString());
+			return new PackageJson().fromJsonFile(pkgFile.toString());
 		}
 		return null;
 	}

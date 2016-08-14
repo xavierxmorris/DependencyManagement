@@ -27,6 +27,7 @@ import org.xml.sax.SAXException;
 
 import twg2.collections.dataStructures.SortedList;
 import twg2.text.stringUtils.StringCheck;
+import twg2.text.stringUtils.StringJoin;
 
 /**
  * @author TeamworkGuy2
@@ -34,6 +35,10 @@ import twg2.text.stringUtils.StringCheck;
  */
 public class EclipseClasspathDoc implements EclipseClasspathEntries {
 	private static final DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+
+	public static String ENTRY_KEY = "classpathentry";
+	public static String ATTRIBUTES_KEY = "attributes";
+	public static String ATTRIBUTE_KEY = "attribute";
 
 	File file;
 	Document doc;
@@ -66,7 +71,7 @@ public class EclipseClasspathDoc implements EclipseClasspathEntries {
 	 */
 	@Override
 	public List<ClassPathEntry> getClassPathEntries(String type) {
-		return EclipseClasspathFile.getClassPathEntries(classPathEntries, type);
+		return EclipseClasspathEntries.getClassPathEntries(classPathEntries, type);
 	}
 
 
@@ -91,7 +96,18 @@ public class EclipseClasspathDoc implements EclipseClasspathEntries {
 	}
 
 
-	public void saveXmlDom(OutputStream out) throws TransformerException {
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(this.file);
+		sb.append(": [\n");
+		StringJoin.Objects.join(this.classPathEntries, "\n", sb);
+		sb.append("]\n");
+		return sb.toString();
+	}
+
+
+	public void toXml(OutputStream out) throws TransformerException {
 		val writeFactory = TransformerFactory.newInstance();
 		val writer = writeFactory.newTransformer();
 		writer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -101,11 +117,11 @@ public class EclipseClasspathDoc implements EclipseClasspathEntries {
 	}
 
 
-	public static final EclipseClasspathDoc loadXmlDom(File srcFile, InputStream in) {
+	public static final EclipseClasspathDoc fromXml(File srcFile, InputStream in) {
 		try {
 			val docBldr = docBuilderFactory.newDocumentBuilder();
 			val doc = docBldr.parse(in);
-			NodeList cps = doc.getElementsByTagName("classpathentry");
+			NodeList cps = doc.getElementsByTagName(ENTRY_KEY);
 			List<ClassPathEntry> cpEntries = new ArrayList<>();
 
 			for(int i = 0, size = cps.getLength(); i < size; i++) {
@@ -115,7 +131,21 @@ public class EclipseClasspathDoc implements EclipseClasspathEntries {
 				val path = NodeUtil.getAttr(cpAttrs, "path");
 				val srcPath = NodeUtil.getAttr(cpAttrs, "sourcepath");
 
-				cpEntries.add(new ClassPathEntry(kind, path, srcPath));
+				val cpe = new ClassPathEntry(kind, path, srcPath);
+
+				val attrsElems = NodeUtil.filter(cp.getChildNodes(), (n) -> ATTRIBUTES_KEY.equals(n.getNodeName()));
+				if(attrsElems.size() > 0) {
+					val attrElems = NodeUtil.filter(attrsElems.get(0).getChildNodes(), (n) -> ATTRIBUTE_KEY.equals(n.getNodeName()));
+					for(int ii = 0, sizeI = attrElems.size(); ii < sizeI; ii++) {
+						val attrElem = attrElems.get(ii);
+						val attrs = attrElem.getAttributes();
+						if(attrs.getNamedItem("name") != null && attrs.getNamedItem("value") != null) {
+							cpe.getAttributes().add(attrs.getNamedItem("name").getNodeValue(), attrs.getNamedItem("value").getNodeValue());
+						}
+					}
+				}
+
+				cpEntries.add(cpe);
 			}
 			return new EclipseClasspathDoc(srcFile, doc, cpEntries);
 		} catch (IOException e) {

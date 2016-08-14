@@ -1,4 +1,4 @@
-package twg2.dependency.jar;
+package twg2.dependency.models;
 
 import lombok.EqualsAndHashCode;
 

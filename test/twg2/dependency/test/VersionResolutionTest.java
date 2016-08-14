@@ -1,23 +1,26 @@
 package twg2.dependency.test;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map.Entry;
 
 import lombok.val;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import twg2.dependency.jar.NameVersion;
-import twg2.dependency.jar.PackageJson;
+import twg2.collections.builder.ListUtil;
+import twg2.dependency.jar.LibrarySet;
+import twg2.dependency.jar.DependencyAndDependents;
 import twg2.dependency.jar.PackageSet;
 import twg2.dependency.jar.RepositoryInfo;
 import twg2.dependency.jar.RepositoryStructure;
 import twg2.dependency.jar.VersionResolution;
+import twg2.dependency.models.LibraryJson;
+import twg2.dependency.models.NameVersion;
+import twg2.io.json.Json;
 
 import com.github.zafarkhaja.semver.expr.CompositeExpression;
 import com.github.zafarkhaja.semver.expr.Expression;
@@ -64,14 +67,16 @@ public class VersionResolutionTest {
 		val javaRepo = javaRepoBldr.build();
 
 		val projSet = new PackageSet(Arrays.asList(javaRepo));
+		val libNodes = Json.getDefaultInst().getObjectMapper().readTree(new File("C:/Users/TeamworkGuy2/Documents/Java/Libraries/libraries.json")).get("libraries").iterator();
+		val libs = new LibrarySet(ListUtil.map(libNodes, (node) -> new LibraryJson().fromJson(node)));
 
 		val proj = javaRepo.getStructure().loadProjectInfo(Paths.get("C:/Users/TeamworkGuy2/Documents/Java/Projects/JParserDataTypeLike"));
 
-		val pkgInfoToDependents = new HashMap<NameVersion, Entry<PackageJson, List<PackageJson>>>();
-		projSet.loadDependencies(proj, pkgInfoToDependents);
+		val pkgInfoToDependents = new HashMap<NameVersion, DependencyAndDependents>();
+		projSet.loadDependencies(proj, libs, pkgInfoToDependents);
 
 		// TODO debugging
-		pkgInfoToDependents.entrySet().stream().forEach((e) -> System.out.println(e.getKey() + ": " + e.getValue().getValue()));
+		pkgInfoToDependents.entrySet().stream().forEach((e) -> System.out.println(e.getKey() + ": " + e.getValue().getDependents()));
 	}
 
 

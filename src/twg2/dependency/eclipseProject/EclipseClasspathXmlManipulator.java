@@ -5,6 +5,7 @@ import lombok.val;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.Text;
 
 import twg2.collections.builder.ListBuilder;
 
@@ -12,9 +13,9 @@ import twg2.collections.builder.ListBuilder;
  * @author TeamworkGuy2
  * @since 2016-2-4
  */
-public class EclipseClasspathReplace {
+public class EclipseClasspathXmlManipulator {
 
-	public static final void removeLibs(Document cpFile) {
+	public static final void removeAllLibs(Document cpFile) {
 		val cpsRoot = cpFile.getElementsByTagName("classpath").item(0);
 
 		Node child = cpsRoot.getLastChild();
@@ -41,16 +42,16 @@ public class EclipseClasspathReplace {
 
 		int i = 0;
 		for(val cp : cpEntries) {
-			val cpElem = createClassPathEntryElement(cpFile, cp);
-			val indent = i == 0 ? cpFile.createTextNode("\t") : cpFile.createTextNode("\n\t");
-			cpsRoot.appendChild(indent);
+			val cpElem = createClassPathEntryElement(cpFile, cp, "\t", "\t");
+			val indent = i == 0 ? "\t" : "\n\t";
+			cpsRoot.appendChild(cpFile.createTextNode(indent));
 			cpsRoot.appendChild(cpElem);
 			i++;
 		}
 	}
 
 
-	private static final Element createClassPathEntryElement(Document doc, ClassPathEntry cpEntry) {
+	private static final Element createClassPathEntryElement(Document doc, ClassPathEntry cpEntry, String currentIndent, String indent) {
 		val cpElem = doc.createElement("classpathentry");
 
 		if(cpEntry.kind != null) {
@@ -69,6 +70,42 @@ public class EclipseClasspathReplace {
 			val attr = doc.createAttribute("sourcepath");
 			attr.setNodeValue(cpEntry.sourcePath);
 			cpElem.getAttributes().setNamedItem(attr);
+		}
+
+		if(cpEntry.getAttributes().size() > 0) {
+			val attrsElem = doc.createElement("attributes");
+			for(val attr : cpEntry.getAttributes()) {
+				val attrElem = doc.createElement("attribute");
+
+				val nameAttr = doc.createAttribute("name");
+				nameAttr.setNodeValue(attr.getKey());
+				attrElem.getAttributes().setNamedItem(nameAttr);
+
+				val valueAttr = doc.createAttribute("value");
+				valueAttr.setNodeValue(attr.getValue());
+				attrElem.getAttributes().setNamedItem(valueAttr);
+
+				if(currentIndent != null && indent != null) {
+					val attrIndent = doc.createTextNode("\n" + currentIndent + indent + indent);
+					attrsElem.appendChild(attrIndent);
+				}
+				attrsElem.appendChild(attrElem);
+			}
+
+			if(currentIndent != null && indent != null) {
+				Text attrsIndent = doc.createTextNode("\n" + currentIndent + indent);
+				attrsElem.appendChild(attrsIndent);
+
+				attrsIndent = doc.createTextNode("\n" + currentIndent + indent);
+				cpElem.appendChild(attrsIndent);
+			}
+
+			cpElem.appendChild(attrsElem);
+
+			if(currentIndent != null && indent != null) {
+				val cpeIndent = doc.createTextNode("\n" + currentIndent);
+				cpElem.appendChild(cpeIndent);
+			}
 		}
 
 		return cpElem;

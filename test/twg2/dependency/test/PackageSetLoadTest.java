@@ -10,10 +10,10 @@ import lombok.val;
 import org.junit.Assert;
 import org.junit.Test;
 
-import twg2.dependency.jar.PackageJson;
 import twg2.dependency.jar.PackageSet;
 import twg2.dependency.jar.RepositoryInfo;
 import twg2.dependency.jar.RepositoryStructure;
+import twg2.dependency.models.PackageJson;
 
 /**
  * @author TeamworkGuy2

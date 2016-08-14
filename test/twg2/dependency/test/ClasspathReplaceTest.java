@@ -21,10 +21,12 @@ public class ClasspathReplaceTest {
 		val jcollInterfacesCp = ClasspathExampleFiles.getJCollectionUtil("no", ClasspathExampleFiles.getJCollectionInterfacesEntry());
 
 		val jcollInterfacesCpPlain = ClasspathExampleFiles.getJCollectionUtil("no");
-		val doc = EclipseClasspathDoc.loadXmlDom(new File(""), new ByteArrayInputStream(jcollInterfacesCpPlain.getBytes("utf-8")));
+		val doc = EclipseClasspathDoc.fromXml(new File(""), new ByteArrayInputStream(jcollInterfacesCpPlain.getBytes("utf-8")));
+
 		doc.addClassPathEntry(ClasspathExampleFiles.getJCollectionInterfacesEntry());
+
 		val output = new ByteArrayOutputStream();
-		doc.saveXmlDom(output);
+		doc.toXml(output);
 		val resStr = new String(output.toByteArray(), "utf-8");
 
 		Assert.assertEquals(jcollInterfacesCp.trim(), resStr.trim());
