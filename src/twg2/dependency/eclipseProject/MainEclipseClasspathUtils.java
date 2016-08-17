@@ -235,7 +235,7 @@ public class MainEclipseClasspathUtils {
 		//val cpEntries = doc.getLibClassPathEntries();
 
 		// load all library package-lib.json files
-		val javaRepoBldr = new RepositoryInfo.Builder("java-projects", new RepositoryStructure("package-lib.json"));
+		val javaRepoBldr = new RepositoryInfo.Builder<>("java-projects", RepositoryStructure.forPackageJson("package-lib.json"));
 		javaRepoBldr.addRepository(projsPath);
 		val projSet = new PackageSet(Arrays.asList(javaRepoBldr.build()));
 		val libNodes = Json.getDefaultInst().getObjectMapper().readTree(new File("C:/Users/TeamworkGuy2/Documents/Java/Libraries/libraries.json")).get("libraries").iterator();
@@ -334,8 +334,8 @@ public class MainEclipseClasspathUtils {
 
 		//printProjectDependencyTree(projects, "ParserTools");
 		//printProjectsContainingLibsMissingLibs(projects, Arrays.asList("jrange.jar"), "jcollection_interfaces.jar");
-		//printProjectsContainingLibs(projects, "jbuffers.jar");
-		checkAndOfferToReplaceLibs();
+		printProjectsContainingLibs(projects, "jarray_util.jar");
+		//checkAndOfferToReplaceLibs();
 	}
 
 }

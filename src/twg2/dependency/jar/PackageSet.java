@@ -31,7 +31,7 @@ public class PackageSet implements PackageVersionCache {
 	 * @param repos
 	 * @throws IOException
 	 */
-	public PackageSet(Iterable<RepositoryInfo> repos) throws IOException {
+	public PackageSet(Iterable<RepositoryInfo<PackageJson>> repos) throws IOException {
 		this.projects = new HashMap<>();
 		for(val repo : repos) {
 			val structure = repo.getStructure();

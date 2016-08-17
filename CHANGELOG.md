@@ -4,7 +4,15 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-###[0.3.0](N/A) - 2016-08-14
+###[0.3.1](N/A) - 2016-08-17
+####Changed
+* RepositoryInfo is now generic and RepositoryStructure is more generic
+* Renamed MainFindGit -> MainGitUtils
+  * Added .gitignore lookup and modify functionality to allow easy management of a common .gitignore file across all projects
+
+
+--------
+###[0.3.0](https://github.com/TeamworkGuy2/DependencyShift/commit/858ada40619bfefe96df900b81d75320450a14ce) - 2016-08-14
 ####Added
 * Proper support for project 3rd party library dependencies (from .classpath files)
   * Added JsonObject as an interface (with static methods) for classes that can read/write JSON data

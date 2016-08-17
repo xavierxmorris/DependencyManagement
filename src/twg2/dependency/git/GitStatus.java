@@ -13,7 +13,7 @@ import twg2.logging.LoggingImpl;
 import twg2.logging.LoggingPrefixFormat;
 import twg2.text.stringUtils.StringSplit;
 
-/**
+/** Tool for running 'git status' on a project
  * @author TeamworkGuy2
  * @since 2016-08-10
  */
@@ -43,8 +43,12 @@ public class GitStatus {
 
 
 
+	/** Run 'git status' on the specified project and return a list of modified/added/deleted file and directory names parsed from the git output
+	 * @param opts the 'git status' paths and options
+	 * @return a list of file paths and statuses
+	 */
 	public static List<SourceControlFileAndStatus> runGitStatus(Options opts) {
-		val log = new LoggingImpl(Level.ALL, System.out, LoggingPrefixFormat.NONE);
+		val log = new LoggingImpl(Level.WARNING, System.out, LoggingPrefixFormat.NONE);
 		val streams = new ProcessIoStreamFactory.MemoryStreams();
 
 		ExecuteCmd.execSync(opts.gitPath + " -C " + opts.projectPath + " status", streams, log);

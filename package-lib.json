@@ -1,5 +1,5 @@
 {
-	"version" : "0.3.0",
+	"version" : "0.3.1",
 	"name" : "dependency-management",
 	"description" : "Shift dependency management for small, personally repository, groups of Java Eclipse projects to automated tools",
 	"homepage" : "https://github.com/TeamworkGuy2/DependencyShift",

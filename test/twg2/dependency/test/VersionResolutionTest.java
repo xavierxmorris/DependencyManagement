@@ -61,7 +61,7 @@ public class VersionResolutionTest {
 	public void getAllDependencies() throws IOException {
 		val javaProjsPath = Paths.get("C:/Users/TeamworkGuy2/Documents/Java/Projects/");
 		// all twg2 Java project package definition files are named 'package-lib.json'
-		val javaRepoBldr = new RepositoryInfo.Builder("java-projects", new RepositoryStructure("package-lib.json"));
+		val javaRepoBldr = new RepositoryInfo.Builder<>("java-projects", RepositoryStructure.forPackageJson("package-lib.json"));
 		javaRepoBldr.addRepository(javaProjsPath);
 
 		val javaRepo = javaRepoBldr.build();
