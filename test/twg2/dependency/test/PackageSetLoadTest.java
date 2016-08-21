@@ -11,7 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import twg2.dependency.jar.PackageSet;
-import twg2.dependency.jar.RepositoryInfo;
+import twg2.dependency.jar.RepositorySet;
 import twg2.dependency.jar.RepositoryStructure;
 import twg2.dependency.models.PackageJson;
 
@@ -25,12 +25,13 @@ public class PackageSetLoadTest {
 	public void load() throws IOException {
 		val javaProjsPath = Paths.get("C:/Users/TeamworkGuy2/Documents/Java/Projects/");
 		// all twg2 Java project package definition files are named 'package-lib.json'
-		val javaRepoBldr = new RepositoryInfo.Builder<>("java-projects", RepositoryStructure.forPackageJson("package-lib.json"));
+		val structure = RepositoryStructure.forPackageJson("package-lib.json");
+		val javaRepoBldr = new RepositorySet.Builder("java-projects");
 		javaRepoBldr.addRepository(javaProjsPath);
 
 		val javaRepo = javaRepoBldr.build();
 
-		val projSet = new PackageSet(Arrays.asList(javaRepo));
+		val projSet = new PackageSet(structure, Arrays.asList(javaRepo));
 
 		Assert.assertTrue(projSet.getProjects("jtext-util").size() > 0);
 	}

@@ -4,25 +4,18 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
-import java.util.List;
-
-import javax.xml.stream.XMLStreamException;
 
 import lombok.Getter;
 import lombok.val;
 import twg2.collections.dataStructures.PairList;
 import twg2.dependency.models.DependencyInfo;
-import twg2.io.serialize.xml.XmlAttributes;
-import twg2.io.serialize.xml.XmlInput;
-import twg2.io.serialize.xml.XmlOutput;
-import twg2.io.serialize.xml.Xmlable;
 import twg2.text.stringSearch.StringCompare;
 
 /**
  * @author TeamworkGuy2
  * @since 2015-5-25
  */
-public class ClassPathEntry implements Comparable<ClassPathEntry>, Xmlable {
+public class ClassPathEntry implements Comparable<ClassPathEntry> {
 	public static String CLASS_PATH_ENTRY_KEY = "classpathentry";
 	public static String inbetweenElementText = "\n\t";
 
@@ -54,31 +47,6 @@ public class ClassPathEntry implements Comparable<ClassPathEntry>, Xmlable {
 
 	public boolean contains(String text) {
 		return StringCompare.containsIgnoreCase(new String[] { kind, path, sourcePath }, text);
-	}
-
-
-	@Override
-	public void readXML(XmlInput in) throws IOException, XMLStreamException {
-		in.readStartBlock(CLASS_PATH_ENTRY_KEY);
-		XmlAttributes attrs = in.getCurrentElementAttributes();
-		List<String> attrNames = attrs.getAttributeNames();
-
-		int kindIdx = attrNames.indexOf("kind");
-		this.kind = kindIdx > -1 ? attrs.getAttributeString(kindIdx) : null;
-
-		int pathIdx = attrNames.indexOf("path");
-		this.path = pathIdx > -1 ? attrs.getAttributeString(pathIdx) : null;
-
-		int sourcePathIdx = attrNames.indexOf("sourcepath");
-		this.sourcePath = sourcePathIdx > -1 ? attrs.getAttributeString(sourcePathIdx) : null;
-
-		in.readEndBlock();
-	}
-
-
-	@Override
-	public void writeXML(XmlOutput out) throws IOException, XMLStreamException {
-		throw new IllegalStateException("unimplemented");
 	}
 
 

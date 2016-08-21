@@ -12,10 +12,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import twg2.collections.builder.ListUtil;
-import twg2.dependency.jar.LibrarySet;
 import twg2.dependency.jar.DependencyAndDependents;
+import twg2.dependency.jar.LibrarySet;
 import twg2.dependency.jar.PackageSet;
-import twg2.dependency.jar.RepositoryInfo;
+import twg2.dependency.jar.RepositorySet;
 import twg2.dependency.jar.RepositoryStructure;
 import twg2.dependency.jar.VersionResolution;
 import twg2.dependency.models.LibraryJson;
@@ -61,16 +61,17 @@ public class VersionResolutionTest {
 	public void getAllDependencies() throws IOException {
 		val javaProjsPath = Paths.get("C:/Users/TeamworkGuy2/Documents/Java/Projects/");
 		// all twg2 Java project package definition files are named 'package-lib.json'
-		val javaRepoBldr = new RepositoryInfo.Builder<>("java-projects", RepositoryStructure.forPackageJson("package-lib.json"));
+		val structure = RepositoryStructure.forPackageJson("package-lib.json");
+		val javaRepoBldr = new RepositorySet.Builder("java-projects");
 		javaRepoBldr.addRepository(javaProjsPath);
 
 		val javaRepo = javaRepoBldr.build();
 
-		val projSet = new PackageSet(Arrays.asList(javaRepo));
+		val projSet = new PackageSet(structure, Arrays.asList(javaRepo));
 		val libNodes = Json.getDefaultInst().getObjectMapper().readTree(new File("C:/Users/TeamworkGuy2/Documents/Java/Libraries/libraries.json")).get("libraries").iterator();
 		val libs = new LibrarySet(ListUtil.map(libNodes, (node) -> new LibraryJson().fromJson(node)));
 
-		val proj = javaRepo.getStructure().loadProjectInfo(Paths.get("C:/Users/TeamworkGuy2/Documents/Java/Projects/JParserDataTypeLike"));
+		val proj = structure.loadProjectInfo(Paths.get("C:/Users/TeamworkGuy2/Documents/Java/Projects/JParserDataTypeLike"));
 
 		val pkgInfoToDependents = new HashMap<NameVersion, DependencyAndDependents>();
 		projSet.loadDependencies(proj, libs, pkgInfoToDependents);

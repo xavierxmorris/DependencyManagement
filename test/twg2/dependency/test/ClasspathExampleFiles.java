@@ -5,10 +5,10 @@ import java.util.Map;
 
 import lombok.val;
 import twg2.collections.builder.MapBuilder;
-import twg2.collections.tuple.Entries;
 import twg2.dependency.eclipseProject.ClassPathEntry;
 import twg2.io.files.FileUtil;
 import twg2.text.stringUtils.StringSplit;
+import twg2.tuple.Entries;
 
 public final class ClasspathExampleFiles {
 	private static String nwln = System.getProperty("line.separator");

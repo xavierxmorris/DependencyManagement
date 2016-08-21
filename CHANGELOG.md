@@ -4,8 +4,17 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-###[0.3.1](N/A) - 2016-08-17
+###[0.3.2](N/A) - 2016-08-21
 ####Changed
+* Renamed RepositoryInfo -> RepositorySet
+* Updated some dependencies to latest version
+* Added JCollectionBuilders and JTuples dependencies
+
+
+--------
+###[0.3.1](https://github.com/TeamworkGuy2/DependencyShift/commit/69ccd66b039da9767c1335c47b85048cd561f990) - 2016-08-17
+####Changed
+* Updated some dependency paths to match latest versions
 * RepositoryInfo is now generic and RepositoryStructure is more generic
 * Renamed MainFindGit -> MainGitUtils
   * Added .gitignore lookup and modify functionality to allow easy management of a common .gitignore file across all projects

@@ -23,14 +23,13 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.TransformerException;
 
 import lombok.val;
+import twg2.collections.builder.AddedRemoved;
 import twg2.collections.builder.ListDiff;
-import twg2.collections.builder.ListDiff.AddedRemoved;
 import twg2.collections.builder.ListUtil;
 import twg2.collections.dataStructures.PairList;
-import twg2.dependency.git.GitStatus;
 import twg2.dependency.jar.LibrarySet;
 import twg2.dependency.jar.PackageSet;
-import twg2.dependency.jar.RepositoryInfo;
+import twg2.dependency.jar.RepositorySet;
 import twg2.dependency.jar.RepositoryStructure;
 import twg2.dependency.models.LibraryJson;
 import twg2.dependency.models.PackageJson;
@@ -235,9 +234,10 @@ public class MainEclipseClasspathUtils {
 		//val cpEntries = doc.getLibClassPathEntries();
 
 		// load all library package-lib.json files
-		val javaRepoBldr = new RepositoryInfo.Builder<>("java-projects", RepositoryStructure.forPackageJson("package-lib.json"));
+		val structure = RepositoryStructure.forPackageJson("package-lib.json");
+		val javaRepoBldr = new RepositorySet.Builder("java-projects");
 		javaRepoBldr.addRepository(projsPath);
-		val projSet = new PackageSet(Arrays.asList(javaRepoBldr.build()));
+		val projSet = new PackageSet(structure, Arrays.asList(javaRepoBldr.build()));
 		val libNodes = Json.getDefaultInst().getObjectMapper().readTree(new File("C:/Users/TeamworkGuy2/Documents/Java/Libraries/libraries.json")).get("libraries").iterator();
 		val libs = new LibrarySet(ListUtil.map(libNodes, (node) -> new LibraryJson().fromJson(node)));
 
@@ -334,7 +334,7 @@ public class MainEclipseClasspathUtils {
 
 		//printProjectDependencyTree(projects, "ParserTools");
 		//printProjectsContainingLibsMissingLibs(projects, Arrays.asList("jrange.jar"), "jcollection_interfaces.jar");
-		printProjectsContainingLibs(projects, "jarray_util.jar");
+		printProjectsContainingLibs(projects, "jsimple_types.jar");
 		//checkAndOfferToReplaceLibs();
 	}
 

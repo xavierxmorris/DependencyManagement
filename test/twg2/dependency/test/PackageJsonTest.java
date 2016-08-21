@@ -10,13 +10,13 @@ import lombok.val;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import twg2.collections.builder.MapBuilder;
-import twg2.collections.tuple.Tuples;
 import twg2.dependency.models.PackageJson;
 import twg2.io.json.Json;
 import twg2.text.stringUtils.StringJoin;
+import twg2.tuple.Tuples;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * @author TeamworkGuy2

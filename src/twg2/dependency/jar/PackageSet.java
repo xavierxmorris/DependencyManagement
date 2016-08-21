@@ -27,14 +27,13 @@ public class PackageSet implements PackageVersionCache {
 	private Map<String, List<PackageJson>> projects;
 
 
-	/** Create a package set by loading package information from a group of {@link RepositoryInfo repositories}
+	/** Create a package set by loading package information from a group of {@link RepositorySet repositories}
 	 * @param repos
 	 * @throws IOException
 	 */
-	public PackageSet(Iterable<RepositoryInfo<PackageJson>> repos) throws IOException {
+	public PackageSet(RepositoryStructure<PackageJson> structure, Iterable<RepositorySet> repos) throws IOException {
 		this.projects = new HashMap<>();
 		for(val repo : repos) {
-			val structure = repo.getStructure();
 			for(val proj : repo.getProjects()) {
 				try {
 					val pkgInfo = structure.loadProjectInfo(proj);
