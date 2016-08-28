@@ -4,7 +4,19 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-###[0.3.2](N/A) - 2016-08-21
+###[0.4.0](N/A) - 2016-08-28
+####Added
+* ProjectsUtil.loadProjectFiles()
+* JsonObject.fromJsonFile(File) overload
+* MainEcliseClasspathUtils loadProjectPackageLibFiles(), getProjectsContainingPkgs(), and printProjectsContainingPkgs()
+
+####Changed
+* Added PackageSet constructor validation parameter to check that project directory names match package-lib.json project names
+* Renamed remote git repository from DependencyShift to DependencyManagement
+
+
+--------
+###[0.3.2](https://github.com/TeamworkGuy2/DependencyShift/commit/4bcc58188ee1fd5b2ec58698fb862969d488e62d) - 2016-08-21
 ####Changed
 * Renamed RepositoryInfo -> RepositorySet
 * Updated some dependencies to latest version

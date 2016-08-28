@@ -1,8 +1,8 @@
 {
-	"version" : "0.3.2",
+	"version" : "0.4.0",
 	"name" : "dependency-management",
 	"description" : "Shift dependency management for small, personally repository, groups of Java Eclipse projects to automated tools",
-	"homepage" : "https://github.com/TeamworkGuy2/DependencyShift",
+	"homepage" : "https://github.com/TeamworkGuy2/DependencyManagement",
 	"license" : "MIT",
 	"main" : "./bin/dependency_management.jar",
 	"dependencies" : {

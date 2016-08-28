@@ -67,7 +67,7 @@ public class VersionResolutionTest {
 
 		val javaRepo = javaRepoBldr.build();
 
-		val projSet = new PackageSet(structure, Arrays.asList(javaRepo));
+		val projSet = new PackageSet(structure, Arrays.asList(javaRepo), true);
 		val libNodes = Json.getDefaultInst().getObjectMapper().readTree(new File("C:/Users/TeamworkGuy2/Documents/Java/Libraries/libraries.json")).get("libraries").iterator();
 		val libs = new LibrarySet(ListUtil.map(libNodes, (node) -> new LibraryJson().fromJson(node)));
 

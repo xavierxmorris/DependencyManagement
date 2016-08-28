@@ -1,16 +1,23 @@
 package twg2.dependency.eclipseProject;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.xml.stream.XMLStreamException;
 
 import lombok.val;
 import twg2.collections.dataStructures.PairList;
 import twg2.dependency.jar.RepositoryStructure;
+import twg2.functions.IoFunc;
 import twg2.io.files.FileFilterUtil;
 
 /** Utility methods for finding, filtering, and looking up directories and files inside the projects in a repository
@@ -74,6 +81,31 @@ public class ProjectsUtil {
 			dst.add(proj, res);
 		}
 		return dst;
+	}
+
+
+	/** Load one project file per project
+	 * @param projectsDir the directory containing the project directories (directories not starting with '.')
+	 * @param fileName the name of the file to load from each project
+	 * @param func a function which takes a file name returns loads project data
+	 * @return a map of project names associated with parsed project data based on a file name
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws XMLStreamException
+	 */
+	public static <R> Map<String, R> loadProjectFiles(File projectsDir, String fileName, IoFunc.FunctionIo<File, R> func) throws FileNotFoundException, IOException, XMLStreamException {
+		File[] dirs = projectsDir.listFiles((file) -> file.isDirectory() && !file.getName().startsWith("."));
+		val projectFiles = new HashMap<String, R>();
+
+		for(File proj : dirs) {
+			File file = new File(proj, fileName);
+			if(file.exists()) {
+				val parsedFile = func.apply(file);
+				projectFiles.put(proj.getName(), parsedFile);
+			}
+		}
+
+		return projectFiles;
 	}
 
 }

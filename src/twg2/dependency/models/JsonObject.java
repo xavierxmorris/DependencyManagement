@@ -49,6 +49,17 @@ public interface JsonObject<T extends JsonObject<T>> {
 	}
 
 
+	public default T fromJsonFile(File file) {
+		try {
+			FileInputStream in = new FileInputStream(file);
+			JsonNode tree = Json.getDefaultInst().getObjectMapper().readTree(in);
+			return fromJson(tree);
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+	}
+
+
 	public default void toJsonFile(String fileName) {
 		try {
 			OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(new File(fileName)), Charset.forName("UTF-8"));

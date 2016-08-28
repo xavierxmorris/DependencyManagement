@@ -45,7 +45,7 @@ public class MainGitUtils {
 
 
 	public static boolean findUsefulGitFiles(GitStatus.SourceControlFileAndStatus file) {
-		return !file.path.endsWith("CHANGELOG.md") && !file.path.endsWith(".gitignore");
+		return !file.path.endsWith("CHANGELOG.md") && !file.path.endsWith(".gitignore") && !file.path.endsWith(".jar");
 	}
 
 

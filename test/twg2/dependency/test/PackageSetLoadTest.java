@@ -31,7 +31,7 @@ public class PackageSetLoadTest {
 
 		val javaRepo = javaRepoBldr.build();
 
-		val projSet = new PackageSet(structure, Arrays.asList(javaRepo));
+		val projSet = new PackageSet(structure, Arrays.asList(javaRepo), true);
 
 		Assert.assertTrue(projSet.getProjects("jtext-util").size() > 0);
 	}

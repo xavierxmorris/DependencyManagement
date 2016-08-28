@@ -2,6 +2,7 @@ package twg2.dependency.jar;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +13,7 @@ import twg2.collections.dataStructures.SortedList;
 import twg2.dependency.models.LibraryJson;
 import twg2.dependency.models.NameVersion;
 import twg2.dependency.models.PackageJson;
+import twg2.text.stringUtils.StringReplace;
 
 import com.github.zafarkhaja.semver.Parser;
 import com.github.zafarkhaja.semver.expr.Expression;
@@ -31,7 +33,7 @@ public class PackageSet implements PackageVersionCache {
 	 * @param repos
 	 * @throws IOException
 	 */
-	public PackageSet(RepositoryStructure<PackageJson> structure, Iterable<RepositorySet> repos) throws IOException {
+	public PackageSet(RepositoryStructure<PackageJson> structure, Iterable<RepositorySet> repos, boolean validateProjectDirNames) throws IOException {
 		this.projects = new HashMap<>();
 		for(val repo : repos) {
 			for(val proj : repo.getProjects()) {
@@ -40,6 +42,11 @@ public class PackageSet implements PackageVersionCache {
 					if(pkgInfo != null) {
 						val pkgName = pkgInfo.getName();
 						val ver = pkgInfo.getVersionExpr();
+
+						val projDirName = proj.getName(proj.getNameCount() - 1).toString();
+						if(validateProjectDirNames && !equalProjectVsPackageName(projDirName, pkgName)) {
+							throw new RuntimeException("package name '" + pkgName + "' did not match project directory name '" + projDirName + "'");
+						}
 
 						List<PackageJson> pkgSet = projects.get(pkgName);
 						if(pkgSet == null) {
@@ -174,6 +181,14 @@ public class PackageSet implements PackageVersionCache {
 			}
 		}
 		return dst;
+	}
+
+
+	public static final boolean equalProjectVsPackageName(String projName, String pkgName) {
+		val removeChars = Arrays.asList("-", "_");
+		val proj = StringReplace.replaceStrings(projName, 0, removeChars, "").toUpperCase();
+		val pkg = StringReplace.replaceStrings(pkgName, 0, removeChars, "").toUpperCase();
+		return proj.equals(pkg);
 	}
 
 
