@@ -12,7 +12,8 @@ import java.util.List;
 
 import lombok.Getter;
 import lombok.val;
-import twg2.functions.IoFunc;
+
+import twg2.functions.FunctionIo;
 
 /**
  * @author TeamworkGuy2
@@ -68,7 +69,7 @@ public class RepositorySet {
 		}
 
 
-		public int addRepository(Path repository, IoFunc.FunctionIo<Path, Boolean> isProjectDir) {
+		public int addRepository(Path repository, FunctionIo<Path, Boolean> isProjectDir) {
 			int size = projects.size();
 			try(val projs = Files.newDirectoryStream(repository, (p) -> dirFilter.accept(p) && isProjectDir.apply(p))) {
 				projs.forEach(projects::add);

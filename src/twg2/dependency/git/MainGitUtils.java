@@ -86,7 +86,7 @@ public class MainGitUtils {
 		val modifiedGitFiles = GitStatus.runGitStatus(new GitStatus.Options(gitPath, projectsPath.resolve(Paths.get(projectName)).toString()));
 
 		val filesOfInterest = ListUtil.filter(modifiedGitFiles, MainGitUtils::findUsefulGitFiles);
-		System.out.println("git modified files:\n\t" + StringJoin.Objects.join(filesOfInterest, "\n\t") + "\n");
+		System.out.println("git modified files:\n\t" + StringJoin.join(filesOfInterest, "\n\t") + "\n");
 	}
 
 
@@ -95,10 +95,10 @@ public class MainGitUtils {
 		val res = ProjectsUtil.findGitDirs(projects);
 
 		val resWith = sort(ListUtil.map(res.getMatches(), createPathRelativizer(projectsPath, relativizeOutputPaths)));
-		System.out.println("With (" + resWith.size() + "):\n" + StringJoin.Objects.join(resWith, "\n") + "\n");
+		System.out.println("With (" + resWith.size() + "):\n" + StringJoin.join(resWith, "\n") + "\n");
 
 		val resWithout = sort(ListUtil.map(res.getFailedMatches(), createPathRelativizer(projectsPath, relativizeOutputPaths)));
-		System.out.println("Without (" + resWithout.size() + "):\n" + StringJoin.Objects.join(resWithout, "\n"));
+		System.out.println("Without (" + resWithout.size() + "):\n" + StringJoin.join(resWithout, "\n"));
 	}
 
 
@@ -114,12 +114,12 @@ public class MainGitUtils {
 		}).filter((projectsFiles) -> {
 			return projectsFiles.getValue().stream().filter(MainGitUtils::findUsefulGitFiles).count() > 0;
 		}).sorted(Entry.comparingByKey()).map((projectsFiles) -> {
-			return projectsFiles.getKey().toString() + "\n\t" + StringJoin.Objects.join(projectsFiles.getValue(), "\n\t") + "\n";
+			return projectsFiles.getKey().toString() + "\n\t" + StringJoin.join(projectsFiles.getValue(), "\n\t") + "\n";
 		}).toArray((s) -> new String[s]);
 		System.out.println("With (" + resWith.length + "):\n" + StringJoin.join(resWith, "\n") + "\n");
 
 		Path[] resWithout = res.getFailedMatches().stream().map(createPathRelativizer(projectsPath, relativizeOutputPaths)).sorted().toArray((s) -> new Path[s]);
-		System.out.println("Without (" + resWithout.length + "):\n" + StringJoin.Objects.join(resWithout, "\n"));
+		System.out.println("Without (" + resWithout.length + "):\n" + StringJoin.join(resWithout, "\n"));
 	}
 
 

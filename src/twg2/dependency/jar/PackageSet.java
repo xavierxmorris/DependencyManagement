@@ -225,7 +225,7 @@ public class PackageSet implements PackageVersionCache {
 				else {
 					libDep = libSet.getLatestVersion(dep.getKey(), depVer);
 					if(libDep == null) {
-						throw new RuntimeException("could not find dependency library '" + dep.getKey() + "@" + dep.getValue() + "'");
+						throw new RuntimeException("could not find dependency library '" + dep.getKey() + "@" + dep.getValue() + "' required by package " + pkg.getName());
 					}
 					else {
 						nameVer = new NameVersion(dep.getKey(), libDep.getVersionExpr());

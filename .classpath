@@ -21,7 +21,7 @@
 			<attribute name="javadoc_location" value="jar:file:/C:/Users/TeamworkGuy2/Documents/Java/Libraries/jackson/doc/jackson-databind-2.5.4-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/TeamworkGuy2/Documents/Java/Libraries/jarray-util/bin/jarray_util.jar" sourcepath="/JArrayUtil"/>
+	<classpathentry kind="lib" path="C:/Users/TeamworkGuy2/Documents/Java/Libraries/jarrays/bin/jarrays.jar" sourcepath="/JArrayUtil"/>
 	<classpathentry kind="lib" path="C:/Users/TeamworkGuy2/Documents/Java/Libraries/jcollection-builders/bin/jcollection_builders.jar" sourcepath="/JCollectionBuilders"/>
 	<classpathentry kind="lib" path="C:/Users/TeamworkGuy2/Documents/Java/Libraries/jcollection-interfaces/bin/jcollection_interfaces.jar" sourcepath="/JCollectionInterfaces"/>
 	<classpathentry kind="lib" path="C:/Users/TeamworkGuy2/Documents/Java/Libraries/jcollection-util/bin/jcollection_util.jar" sourcepath="/JCollectionUtil"/>
@@ -35,7 +35,7 @@
 	<classpathentry kind="lib" path="C:/Users/TeamworkGuy2/Documents/Java/Libraries/jtext-template/bin/jtext_template.jar" sourcepath="/JTextTemplate"/>
 	<classpathentry kind="lib" path="C:/Users/TeamworkGuy2/Documents/Java/Libraries/jtwg2-logging/bin/jtwg2_logging.jar" sourcepath="/JTwg2Logging"/>
 	<classpathentry kind="lib" path="C:/Users/TeamworkGuy2/Documents/Java/Libraries/jtext-util/bin/jtext_util.jar" sourcepath="/JTextUtil"/>
-	<classpathentry kind="lib" path="C:/Users/TeamworkGuy2/Documents/Java/Libraries/jtree-walker/bin/jtree_walker.jar" sourcepath="/JTreeWalker"/>
 	<classpathentry kind="lib" path="C:/Users/TeamworkGuy2/Documents/Java/Libraries/jtuples/bin/jtuples.jar" sourcepath="/JTuples"/>
+	<classpathentry kind="lib" path="C:/Users/TeamworkGuy2/Documents/Java/Libraries/jtree-walker/bin/jtree_walker.jar" sourcepath="/JTreeWalker"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

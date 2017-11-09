@@ -360,9 +360,9 @@ public class MainEclipseClasspathUtils {
 
 		//printProjectDependencyTree(projects, "ParserTools");
 		//printProjectsContainingLibsMissingLibs(projects, Arrays.asList("jrange.jar"), "jcollection_interfaces.jar");
-		//printProjectsContainingLibs(projects, "jsimple_types.jar");
-		//printProjectsContainingPkgs(projects, "jtext-util");
-		checkAndOfferToReplaceLibs(projects, libraries, "JParserTools"); // DependencyManagement
+		printProjectsContainingLibs(projects, "data_transfer.jar");
+		//printProjectsContainingPkgs(projects, "jparser-primitive");
+		//checkAndOfferToReplaceLibs(projects, libraries, "JParseCode"); // DependencyManagement
 	}
 
 }

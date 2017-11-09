@@ -16,7 +16,7 @@ public final class ClasspathExampleFiles {
 	public static String indentation = "\t";
 
 	public static final Map<String, Object> dependencyTreeLibs = MapBuilder.of(
-		Entries.of("jparameter", MapBuilder.of(
+		Entries.of("jcli", MapBuilder.of(
 			Entries.of("jarray-util", null),
 			Entries.of("jcollection-util", MapBuilder.of(
 				Entries.of("jcollection-interfaces", null)

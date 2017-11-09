@@ -1,6 +1,7 @@
 package twg2.dependency.test;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -71,7 +72,11 @@ public class VersionResolutionTest {
 		val libNodes = Json.getDefaultInst().getObjectMapper().readTree(new File("C:/Users/TeamworkGuy2/Documents/Java/Libraries/libraries.json")).get("libraries").iterator();
 		val libs = new LibrarySet(ListUtil.map(libNodes, (node) -> new LibraryJson().fromJson(node)));
 
-		val proj = structure.loadProjectInfo(Paths.get("C:/Users/TeamworkGuy2/Documents/Java/Projects/JParserDataTypeLike"));
+		val projName = "JParseJsonLite";
+		val proj = structure.loadProjectInfo(Paths.get("C:/Users/TeamworkGuy2/Documents/Java/Projects/" + projName));
+		if(proj == null) {
+			throw new FileNotFoundException(structure.toString() + " in repository '" + projName + "'");
+		}
 
 		val pkgInfoToDependents = new HashMap<NameVersion, DependencyAndDependents>();
 		projSet.loadDependencies(proj, libs, pkgInfoToDependents);

@@ -101,7 +101,7 @@ public class EclipseClasspathDoc implements EclipseClasspathEntries {
 		StringBuilder sb = new StringBuilder();
 		sb.append(this.file);
 		sb.append(": [\n");
-		StringJoin.Objects.join(this.classPathEntries, "\n", sb);
+		StringJoin.join(this.classPathEntries, "\n", sb);
 		sb.append("]\n");
 		return sb.toString();
 	}

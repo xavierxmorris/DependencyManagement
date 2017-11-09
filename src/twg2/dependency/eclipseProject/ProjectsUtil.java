@@ -17,7 +17,7 @@ import javax.xml.stream.XMLStreamException;
 import lombok.val;
 import twg2.collections.dataStructures.PairList;
 import twg2.dependency.jar.RepositoryStructure;
-import twg2.functions.IoFunc;
+import twg2.functions.FunctionIo;
 import twg2.io.files.FileFilterUtil;
 
 /** Utility methods for finding, filtering, and looking up directories and files inside the projects in a repository
@@ -93,7 +93,7 @@ public class ProjectsUtil {
 	 * @throws IOException
 	 * @throws XMLStreamException
 	 */
-	public static <R> Map<String, R> loadProjectFiles(File projectsDir, String fileName, IoFunc.FunctionIo<File, R> func) throws FileNotFoundException, IOException, XMLStreamException {
+	public static <R> Map<String, R> loadProjectFiles(File projectsDir, String fileName, FunctionIo<File, R> func) throws FileNotFoundException, IOException, XMLStreamException {
 		File[] dirs = projectsDir.listFiles((file) -> file.isDirectory() && !file.getName().startsWith("."));
 		val projectFiles = new HashMap<String, R>();
 
