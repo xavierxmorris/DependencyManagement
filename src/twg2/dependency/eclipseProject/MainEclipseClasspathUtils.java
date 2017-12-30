@@ -5,18 +5,24 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.TransformerException;
@@ -25,6 +31,7 @@ import lombok.val;
 import twg2.collections.builder.AddedRemoved;
 import twg2.collections.builder.ListDiff;
 import twg2.collections.builder.ListUtil;
+import twg2.collections.builder.MapUtil;
 import twg2.collections.dataStructures.PairList;
 import twg2.dependency.jar.LibrarySet;
 import twg2.dependency.jar.PackageSet;
@@ -33,6 +40,7 @@ import twg2.dependency.jar.RepositoryStructure;
 import twg2.dependency.models.LibraryJson;
 import twg2.dependency.models.PackageJson;
 import twg2.io.fileLoading.ValidInvalid;
+import twg2.io.files.FileReadUtil;
 import twg2.io.json.Json;
 import twg2.text.stringUtils.StringCase;
 import twg2.text.stringUtils.StringSplit;
@@ -43,9 +51,20 @@ import twg2.text.stringUtils.StringSplit;
  */
 public class MainEclipseClasspathUtils {
 
-	public static Map<String, EclipseClasspathEntries> loadProjectClasspathFiles(File projectsDir) throws FileNotFoundException, IOException, XMLStreamException {
+	public static Map<String, EclipseClasspathDoc> loadProjectClasspathFiles(File projectsDir, boolean saveSrc) throws FileNotFoundException, IOException, XMLStreamException {
+		StringBuilder tmpDst = new StringBuilder(512);
 		return ProjectsUtil.loadProjectFiles(projectsDir, ".classpath", (file) -> {
-			return EclipseClasspathDoc.fromXml(file, new FileInputStream(file));
+			if(saveSrc) {
+				FileReadUtil.threadLocalInst().readTo(new FileReader(file), tmpDst);
+				String str = tmpDst.toString();
+				tmpDst.setLength(0);
+				EclipseClasspathDoc doc = EclipseClasspathDoc.fromXml(file, new StringReader(str));
+				doc.source = str;
+				return doc;
+			}
+			else {
+				return EclipseClasspathDoc.fromXml(file, new FileInputStream(file));
+			}
 		});
 	}
 
@@ -57,7 +76,7 @@ public class MainEclipseClasspathUtils {
 	}
 
 
-	public static Map<String, EclipseClasspathEntries> getProjectsContainingLibs(Map<String, EclipseClasspathEntries> projectFiles, String type, List<String> containsList, boolean containsAll) throws FileNotFoundException, IOException, XMLStreamException {
+	public static Map<String, EclipseClasspathEntries> getProjectsContainingLibs(Map<String, ? extends EclipseClasspathEntries> projectFiles, String type, List<String> containsList, boolean containsAll) throws FileNotFoundException, IOException, XMLStreamException {
 		Map<String, EclipseClasspathEntries> res = new HashMap<>();
 
 		for(val cpFileEntry : projectFiles.entrySet()) {
@@ -99,7 +118,7 @@ public class MainEclipseClasspathUtils {
 	 * @return a map of project directories to list of imports from the {@code doesInclude} list that do not appear in that project's imports
 	 * and a list of project names containing the {@code ifContainsList} but not the {@code doesInclude} list
 	 */
-	public static ValidInvalid<PairList<String, List<String>>, List<String>> getProjectsContainingLibsMissingLibs(Map<String, EclipseClasspathEntries> projectFiles,
+	public static ValidInvalid<PairList<String, List<String>>, List<String>> getProjectsContainingLibsMissingLibs(Map<String, ? extends EclipseClasspathEntries> projectFiles,
 			String type, List<String> ifContainsList, List<String> doesInclude) throws FileNotFoundException, IOException, XMLStreamException {
 		PairList<String, List<String>> resultNotContain = new PairList<>();
 
@@ -133,13 +152,14 @@ public class MainEclipseClasspathUtils {
 
 
 	public static void printProjectDependencyTree(File projectsDir, String projName) throws FileNotFoundException, IOException, XMLStreamException {
-		val projectFiles = loadProjectClasspathFiles(projectsDir);
+		val projectFiles = loadProjectClasspathFiles(projectsDir, false);
 		StringBuilder tmpSb = new StringBuilder();
-		_printProjectDependencyTree(projectFiles, projName, tmpSb);
+		HashSet<String> projects = new HashSet<>();
+		_printProjectDependencyTree(projectFiles, projName, tmpSb, projects);
 	}
 
 
-	public static void _printProjectDependencyTree(Map<String, EclipseClasspathEntries> classPathFiles, String projName, StringBuilder indent) throws FileNotFoundException, IOException, XMLStreamException {
+	public static void _printProjectDependencyTree(Map<String, ? extends EclipseClasspathEntries> classPathFiles, String projName, StringBuilder indent, HashSet<String> dstProjectsEncountered) throws FileNotFoundException, IOException, XMLStreamException {
 		boolean found = false;
 		for(val cpFileEntry : classPathFiles.entrySet()) {
 			val cpFile = cpFileEntry.getValue();
@@ -151,10 +171,13 @@ public class MainEclipseClasspathUtils {
 						String fileName = StringSplit.firstMatch(StringSplit.lastMatch(cpEntry.path, '/'), '.');
 						String possibleProjName = libNameToProjectName(fileName);
 
-						System.out.println(indent.toString() + possibleProjName);
+						boolean projectAlreadyEncountered = dstProjectsEncountered.contains(possibleProjName);
+						dstProjectsEncountered.add(possibleProjName);
+
+						System.out.println(indent.toString() + possibleProjName + (projectAlreadyEncountered ? "  (dup)" : ""));
 
 						indent.append("\t");
-						_printProjectDependencyTree(classPathFiles, possibleProjName, indent);
+						_printProjectDependencyTree(classPathFiles, possibleProjName, indent, dstProjectsEncountered);
 						indent.setLength(indent.length() - 1);
 					}
 				}
@@ -190,7 +213,7 @@ public class MainEclipseClasspathUtils {
 
 
 	public static final String libNameToProjectName(String libName) {
-		String projName = StringCase.toTitleCase(libName);
+		String projName = StringCase.toTitleCase(libName.endsWith("-with-tests") ? libName.substring(0, libName.length() - "-with-tests".length()) : libName);
 		if(projName.startsWith("J") && !projName.startsWith("Json") && !projName.startsWith("Jackson")) {
 			projName = "" + Character.toUpperCase(projName.charAt(0)) + Character.toUpperCase(projName.charAt(1)) + projName.substring(2);
 		}
@@ -202,7 +225,7 @@ public class MainEclipseClasspathUtils {
 		List<String> expectImports = Arrays.asList(expectedImports);
 		boolean containsAll = true;
 
-		val projectFiles = loadProjectClasspathFiles(projects);
+		val projectFiles = loadProjectClasspathFiles(projects, false);
 		val projFiles = getProjectsContainingLibs(projectFiles, null, expectImports, containsAll);
 
 		System.out.println("Projects containing packages " + expectImports.toString() + ":");
@@ -216,7 +239,7 @@ public class MainEclipseClasspathUtils {
 	public static void printProjectsContainingLibsMissingLibs(File projects, List<String> expectedImports, String doesContainAry) throws FileNotFoundException, IOException, XMLStreamException {
 		List<String> doesContain = Arrays.asList(doesContainAry);
 
-		val projectFiles = loadProjectClasspathFiles(projects);
+		val projectFiles = loadProjectClasspathFiles(projects, false);
 		val resRes = getProjectsContainingLibsMissingLibs(projectFiles, null, expectedImports, doesContain);
 		val res = resRes.valid;
 		val filteredProjects = resRes.invalid;
@@ -249,6 +272,29 @@ public class MainEclipseClasspathUtils {
 	}
 
 
+	public static void modifyClassPathFiles(File projects, Predicate<EclipseClasspathDoc> filter, BiFunction<EclipseClasspathDoc, String, String> transformer, boolean save) throws FileNotFoundException, IOException, XMLStreamException {
+		if(!save) {
+			System.out.println("==== Dry-run, no changes being made ====");
+		}
+		val projectFiles = loadProjectClasspathFiles(projects, true);
+
+		val matches = MapUtil.filter(projectFiles, (k, v) -> filter.test(v));
+
+		matches.forEach((path, cpDoc) -> {
+			String res = transformer.apply(cpDoc, cpDoc.source);
+			if(save) {
+				try (FileWriter fw = new FileWriter(cpDoc.file)) {
+					fw.append(res);
+				} catch (IOException e) {
+					throw new UncheckedIOException(e);
+				}
+			}
+			else {
+				System.out.println("modified '" + cpDoc.file + "':\n" + res);
+			}
+		});
+	}
+
 
 	/** Load a classpath file, remove existing libs, load with libs from PackageJson, print before and after classpath files to System.out
 	 */
@@ -270,15 +316,17 @@ public class MainEclipseClasspathUtils {
 		val packageFile = new File(projsPath, projName + "/package-lib.json");
 		val pkgInfo = new PackageJson().fromJsonFile(packageFile.toString());
 		val pkgDependencies = projSet.loadDependencies(pkgInfo, libs);
+
 		val pkgClassPathEntries = ListUtil.map(pkgDependencies.entrySet(), (e) -> {
-			if(e.getValue().isPackage()) {
-				return ClassPathEntry.fromDependency(e.getValue().getPackageInfo(), libsPath.toPath());
+			val infoDeps = e.getValue();
+			if(infoDeps.isPackage()) {
+				return ClassPathEntry.fromDependency(infoDeps.getPackageInfo(), libsPath.toPath());
 			}
-			else if(e.getValue().isLibrary()) {
-				return ClassPathEntry.fromDependency(e.getValue().getLibraryInfo(), libsPath.toPath());
+			else if(infoDeps.isLibrary()) {
+				return ClassPathEntry.fromDependency(infoDeps.getLibraryInfo(), libsPath.toPath());
 			}
 			else {
-				throw new Error("dependency '" + e.getValue() + "' is not a package or library, no other known valid type");
+				throw new Error("dependency '" + infoDeps + "' is not a package or library, no other known valid type");
 			}
 		});
 		pkgClassPathEntries.sort((a, b) -> a.getPath().compareTo(b.getPath()));
@@ -356,13 +404,19 @@ public class MainEclipseClasspathUtils {
 
 	public static void main(String[] args) throws FileNotFoundException, IOException, XMLStreamException, TransformerException {
 		File projects = new File("C:/Users/TeamworkGuy2/Documents/Java/Projects/");
-		File libraries = new File("C:/Users/TeamworkGuy2/Documents/Java/Libraries/");
 
-		//printProjectDependencyTree(projects, "ParserTools");
+		//printProjectDependencyTree(projects, "JParseCode");
 		//printProjectsContainingLibsMissingLibs(projects, Arrays.asList("jrange.jar"), "jcollection_interfaces.jar");
 		printProjectsContainingLibs(projects, "data_transfer.jar");
 		//printProjectsContainingPkgs(projects, "jparser-primitive");
+
+		//File libraries = new File("C:/Users/TeamworkGuy2/Documents/Java/Libraries/");
 		//checkAndOfferToReplaceLibs(projects, libraries, "JParseCode"); // DependencyManagement
+
+		//modifyClassPathFiles(projects,
+		//		(cp) -> cp.getClassPathEntries("con").stream().anyMatch((c) -> c.path.equals("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8")),
+		//		(cp, txt) -> txt != null ? txt.replace("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8", "org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-9") : null,
+		//		true/*modify .classpath files*/);
 	}
 
 }

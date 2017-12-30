@@ -11,9 +11,9 @@ import twg2.text.stringUtils.StringSplit;
 import twg2.tuple.Entries;
 
 public final class ClasspathExampleFiles {
-	private static String nwln = System.getProperty("line.separator");
+	public static String nwln = System.getProperty("line.separator");
 
-	public static String indentation = "\t";
+	public static String indent = "\t";
 
 	public static final Map<String, Object> dependencyTreeLibs = MapBuilder.of(
 		Entries.of("jcli", MapBuilder.of(
@@ -67,20 +67,20 @@ public final class ClasspathExampleFiles {
 		"</classpath>";
 	}
 
-	public static String getJCollectionUtil(String standalone, ClassPathEntry... additionalLibs) {
-		return header(nwln, standalone) +
-		"<classpath>" + nwln +
-		"	<classpathentry kind=\"src\" path=\"src\"/>" + nwln +
-		"	<classpathentry kind=\"src\" path=\"test\"/>" + nwln +
-		"	<classpathentry kind=\"con\" path=\"org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8\"/>" + nwln +
-		"	<classpathentry kind=\"con\" path=\"org.eclipse.jdt.junit.JUNIT_CONTAINER/4\"/>" + nwln +
-		"	<classpathentry kind=\"con\" path=\"org.eclipse.jdt.USER_LIBRARY/ANTLR\"/>" + nwln +
-		"	<classpathentry kind=\"con\" path=\"org.eclipse.jdt.USER_LIBRARY/TemplateUtil\"/>" + nwln +
-		"	<classpathentry kind=\"con\" path=\"org.eclipse.jdt.USER_LIBRARY/TestChecks\"/>" + nwln +
-		sortAndStringifyLibs("\t", nwln, additionalLibs,
+	public static String getJCollectionUtil(String standalone, String newline, String indent, ClassPathEntry... additionalLibs) {
+		return header(newline, standalone) +
+		"<classpath>" + newline +
+		indent + "<classpathentry kind=\"src\" path=\"src\"/>" + newline +
+		indent + "<classpathentry kind=\"src\" path=\"test\"/>" + newline +
+		indent + "<classpathentry kind=\"con\" path=\"org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8\"/>" + newline +
+		indent + "<classpathentry kind=\"con\" path=\"org.eclipse.jdt.junit.JUNIT_CONTAINER/4\"/>" + newline +
+		indent + "<classpathentry kind=\"con\" path=\"org.eclipse.jdt.USER_LIBRARY/ANTLR\"/>" + newline +
+		indent + "<classpathentry kind=\"con\" path=\"org.eclipse.jdt.USER_LIBRARY/TemplateUtil\"/>" + newline +
+		indent + "<classpathentry kind=\"con\" path=\"org.eclipse.jdt.USER_LIBRARY/TestChecks\"/>" + newline +
+		sortAndStringifyLibs(indent, newline, additionalLibs,
 			"<classpathentry kind=\"lib\" path=\"C:/Users/TeamworkGuy2/Documents/Java/Libraries/jarray-util/jar/jarray_util.jar\" sourcepath=\"/JArrayUtil\"/>"
 		) +
-		"	<classpathentry kind=\"output\" path=\"bin\"/>" + nwln +
+		indent + "<classpathentry kind=\"output\" path=\"bin\"/>" + newline +
 		"</classpath>";
 	}
 
@@ -148,7 +148,7 @@ public final class ClasspathExampleFiles {
 		}
 
 		val sb = new StringBuilder(totalSize);
-		libs.entrySet().stream().sorted((a,b) -> a.getValue().compareTo(b.getValue())).forEach((a) -> { sb.append(indentation); sb.append(a.getValue()); sb.append(nwln); });
+		libs.entrySet().stream().sorted((a,b) -> a.getValue().compareTo(b.getValue())).forEach((a) -> { sb.append(indentation); sb.append(a.getValue()); sb.append(newline); });
 		return sb.toString();
 	}
 

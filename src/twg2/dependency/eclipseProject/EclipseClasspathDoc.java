@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,6 +24,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import twg2.collections.dataStructures.SortedList;
@@ -42,11 +44,13 @@ public class EclipseClasspathDoc implements EclipseClasspathEntries {
 
 	File file;
 	Document doc;
+	String source;
 	List<ClassPathEntry> classPathEntries = new ArrayList<>();
 
 
-	public EclipseClasspathDoc(File file, Document doc, List<ClassPathEntry> classPathEntries) {
+	public EclipseClasspathDoc(File file, String source, Document doc, List<ClassPathEntry> classPathEntries) {
 		this.file = file;
+		this.source = source;
 		this.doc = doc;
 		this.classPathEntries = classPathEntries;
 		Collections.sort(this.classPathEntries);
@@ -85,9 +89,9 @@ public class EclipseClasspathDoc implements EclipseClasspathEntries {
 
 		if(!StringCheck.isNullOrEmpty(entry.getSourcePath())) { entryNode.setAttribute("sourcepath", entry.getSourcePath()); }
 		val siblings = NodeUtil.filter(cps.getChildNodes(), (n) -> n.getNodeType() == Node.ELEMENT_NODE);
-		val indentationText = this.doc.createTextNode(ClassPathEntry.inbetweenElementText);
 		NodeUtil.insertAfter(cps, siblings, insertPoint, entryNode);
-		NodeUtil.insertAfter(cps, siblings, insertPoint + 1, indentationText);
+		//val indentationText = this.doc.createTextNode(ClassPathEntry.inbetweenElementText);
+		//NodeUtil.insertAfter(cps, siblings, insertPoint + 1, indentationText);
 	}
 
 
@@ -117,7 +121,17 @@ public class EclipseClasspathDoc implements EclipseClasspathEntries {
 	}
 
 
+	public static final EclipseClasspathDoc fromXml(File srcFile, Reader in) {
+		return fromXml(srcFile, new InputSource(in));
+	}
+
+
 	public static final EclipseClasspathDoc fromXml(File srcFile, InputStream in) {
+		return fromXml(srcFile, new InputSource(in));
+	}
+
+
+	public static final EclipseClasspathDoc fromXml(File srcFile, InputSource in) {
 		try {
 			val docBldr = docBuilderFactory.newDocumentBuilder();
 			val doc = docBldr.parse(in);
@@ -147,7 +161,7 @@ public class EclipseClasspathDoc implements EclipseClasspathEntries {
 
 				cpEntries.add(cpe);
 			}
-			return new EclipseClasspathDoc(srcFile, doc, cpEntries);
+			return new EclipseClasspathDoc(srcFile, null, doc, cpEntries);
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		} catch(SAXException | ParserConfigurationException se) {

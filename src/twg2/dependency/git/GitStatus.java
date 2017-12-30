@@ -9,8 +9,8 @@ import lombok.val;
 import twg2.collections.builder.ListUtil;
 import twg2.io.exec.ExecuteCmd;
 import twg2.io.exec.ProcessIoStreamFactory;
-import twg2.logging.LoggingImpl;
-import twg2.logging.LoggingPrefixFormat;
+import twg2.logging.LogPrefixFormat;
+import twg2.logging.LogServiceImpl;
 import twg2.text.stringUtils.StringSplit;
 
 /** Tool for running 'git status' on a project
@@ -48,7 +48,7 @@ public class GitStatus {
 	 * @return a list of file paths and statuses
 	 */
 	public static List<SourceControlFileAndStatus> runGitStatus(Options opts) {
-		val log = new LoggingImpl(Level.WARNING, System.out, LoggingPrefixFormat.NONE);
+		val log = new LogServiceImpl(Level.WARNING, System.out, LogPrefixFormat.NONE);
 		val streams = new ProcessIoStreamFactory.MemoryStreams();
 
 		ExecuteCmd.execSync(opts.gitPath + " -C " + opts.projectPath + " status", streams, log);

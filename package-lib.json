@@ -1,5 +1,5 @@
 {
-	"version" : "0.4.1",
+	"version" : "0.4.2",
 	"name" : "dependency-management",
 	"description" : "Shift dependency management for small, personally repository, groups of Java Eclipse projects to automated tools",
 	"homepage" : "https://github.com/TeamworkGuy2/DependencyManagement",
@@ -17,6 +17,7 @@
 		"jmeta-access": "*",
 		"jsemver": "*",
 		"json-io": "*",
-		"jtext-util": "*"
+		"jtext-util": "*",
+		"jtwg2-logging": "^0.3.0"
 	}
 }

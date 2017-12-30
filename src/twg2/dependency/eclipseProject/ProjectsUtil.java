@@ -84,7 +84,7 @@ public class ProjectsUtil {
 	}
 
 
-	/** Load one project file per project
+	/** Load one file per project where each project path is an immediate sub-folder of {@code projectsDir}
 	 * @param projectsDir the directory containing the project directories (directories not starting with '.')
 	 * @param fileName the name of the file to load from each project
 	 * @param func a function which takes a file name returns loads project data

@@ -4,7 +4,22 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-### [0.4.1](N/A) - 2017-11-09
+### [0.4.2](N/A) - 2017-12-30
+#### Added
+* `MainEclipseClasspathUtils.modifyClassPathFiles()`
+* EclipseClasspathDoc now support tracking XML source string
+
+#### Changed
+* Upgrade to Java 9
+* Upgrade to JUnit 5
+* Updated dependency `jtwg2-logging@0.3.0`
+* MainEclipseClasspathUtils
+  * `loadProjectClasspathFiles()` new flag to save XML source strings
+  * `_printProjectDependencyTree()` new `dstProjectsEncountered` HashSet parameter required for tracking which dependencies have already been encountered in the dependency tree.  Used to determine which dependencies to display ' (dup)' after.
+
+
+--------
+### [0.4.1](https://github.com/TeamworkGuy2/DependencyManagement/commit/f39927c7ed5ddebbb539d7abe27dedee87b0df40) - 2017-11-09
 #### Changed
 * Updated dependencies, including `jfunc@0.4.0`, `jtext-util@0.11.0`
 

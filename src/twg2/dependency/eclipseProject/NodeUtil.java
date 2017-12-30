@@ -33,6 +33,7 @@ public class NodeUtil {
 	}
 
 
+	@SuppressWarnings("unchecked")
 	public static final <T> List<T> mapFilter(NodeList list, List<T> dstList, Object skipVal, Function<Node, ? extends Object> mapper) {
 		val res = dstList != null ? dstList : new ArrayList<T>();
 		int len = list.getLength();

@@ -103,7 +103,7 @@ public class MainGitUtils {
 
 
 	public static void listGitProjectStatuses(Path projectsPath, boolean relativizeOutputPaths) {
-		String gitPath = "\"C:/Program Files (x86)/Git/bin/git.exe\"";
+		String gitPath = "\"C:/Program Files/Git/bin/git.exe\"";
 
 		val projects = ProjectsUtil.getProjectDirs(list(projectsPath));
 		val res = ProjectsUtil.findGitDirs(projects);
